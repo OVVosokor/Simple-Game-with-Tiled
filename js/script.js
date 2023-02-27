@@ -42,6 +42,7 @@ function canvasApp()  {
         player;
         itemsOfNpc = [];
         isPressKey = false;
+        pressed = new Set();
 
         init() {
             canvas.width = this.mapCols * 32;
@@ -112,7 +113,6 @@ function canvasApp()  {
             frameIndexCounter.countFrames();
             this.player.update();
             this.renderMap();
-            //this.renderObj( tileSheetOfCombatDummy, 8, 50, 50, 100, false );
 
             this.player.render();
             this.itemsOfNpc[0].render();
@@ -173,38 +173,6 @@ function canvasApp()  {
             console.log('test!!');
             
         }
-        /*
-        update() {
-            if ( game.isPressKey ) {
-                //this.moveMode = moveMode;
-                switch ( this.direction ) {
-                    case 'up':
-                        this.sourceDY = 0;
-                        this.dx = 0;
-                        this.dy = -1;
-                        break;
-                    case 'left':
-                        this.sourceDY = 64;
-                        this.dx = -1;
-                        this.dy = 0;
-                        break;
-                    case 'down':
-                        this.sourceDY = 128;
-                        this.dx = 0;
-                        this.dy = 1;
-                        break;
-                    case 'right':
-                        this.sourceDY = 192;
-                        this.dx = 1;
-                        this.dy = 0;
-                        break;
-                }
-                //console.log( this.y );
-                this.x = this.x + this.dx;
-                this.y = this.y + this.dy;
-            }
-        }
-        */
         render() {
             let animationFrames = [];
             frameIndexCounter.delay = this.delay;
@@ -249,28 +217,55 @@ function canvasApp()  {
 
         update() {
             if ( game.isPressKey ) {
-                //this.moveMode = moveMode;
-                switch ( this.direction ) {
-                    case 'up':
-                        this.sourceDY = 0;
-                        this.dx = 0;
-                        this.dy = -1;
-                        break;
-                    case 'left':
-                        this.sourceDY = 64;
-                        this.dx = -1;
-                        this.dy = 0;
-                        break;
-                    case 'down':
-                        this.sourceDY = 128;
-                        this.dx = 0;
-                        this.dy = 1;
-                        break;
-                    case 'right':
+                //console.log( game.pressed );
+                for ( const code of game.pressed.values() ) {
+                    if ( game.pressed.has( 'ArrowDown' ) && game.pressed.has( 'ArrowRight' ) ) {
                         this.sourceDY = 192;
                         this.dx = 1;
-                        this.dy = 0;
+                        this.dy = 1;
                         break;
+                    }else
+                        if ( game.pressed.has( 'ArrowDown' ) && game.pressed.has( 'ArrowLeft' ) ) {
+                            this.sourceDY = 64;
+                            this.dx = -1;
+                            this.dy = 1;
+                            break;
+                        }else
+                            if ( game.pressed.has( 'ArrowUp' ) && game.pressed.has( 'ArrowLeft' ) ) {
+                                this.sourceDY = 0;
+                                this.dx = -1;
+                                this.dy = -1;
+                                break;
+                            }else
+                                if ( game.pressed.has( 'ArrowUp' ) && game.pressed.has( 'ArrowRight' ) ) {
+                                    this.sourceDY = 0;
+                                    this.dx = 1;
+                                    this.dy = -1;
+                                    break;
+                                }
+                                
+                    switch ( code ) {
+                        case 'ArrowUp':
+                            this.sourceDY = 0;
+                            this.dx = 0;
+                            this.dy = -1;
+                            break;
+                        case 'ArrowLeft':
+                            this.sourceDY = 64;
+                            this.dx = -1;
+                            this.dy = 0;
+                            break;
+                        case 'ArrowDown':
+                            this.sourceDY = 128;
+                            this.dx = 0;
+                            this.dy = 1;
+                            break;
+                        case 'ArrowRight':
+                            this.sourceDY = 192;
+                            this.dx = 1;
+                            this.dy = 0;
+                            break;
+                    }
                 }
                 //console.log( this.y );
                 this.x = this.x + this.dx;
@@ -303,31 +298,41 @@ function canvasApp()  {
     }
 */
     function mouseKeyDownHandler( e ) {
+        //console.log( e.code );
+
         switch ( e.code ) {
             case 'ArrowDown':
+                game.pressed.add( e.code );
+                //console.log( game.pressed );
                 //console.log('keyPress down');
-                game.player.direction = 'down';
+                //game.player.direction = 'down';
                 game.player.moveMode = 'run';
                 game.isPressKey = true;
                 //console.log(game.player.x)
                 break;
             case 'ArrowUp':
                 //console.log('keyPress up');
-                game.player.direction = 'up';
+                //game.player.direction = 'up';
                 game.player.moveMode = 'run';
                 game.isPressKey = true;
+                game.pressed.add( e.code );
+                //console.log( game.pressed );
                 break;
             case 'ArrowLeft':
                 //console.log('keyPress left');
-                game.player.direction = 'left';
+                //game.player.direction = 'left';
                 game.player.moveMode = 'run';
                 game.isPressKey = true;
+                game.pressed.add( e.code );
+                //console.log( game.pressed );
                 break;
             case 'ArrowRight':
                 //console.log('keyPress right');
-                game.player.direction = 'right';
+                //game.player.direction = 'right';
                 game.player.moveMode = 'run';
                 game.isPressKey = true;
+                game.pressed.add( e.code );
+                //console.log( game.pressed );
                 break;
             }
     }
@@ -335,23 +340,43 @@ function canvasApp()  {
         switch ( e.code ) {
             case 'ArrowDown':
                 //console.log('keyUnPress down');
-                game.player.moveMode = 'idle';
-                game.isPressKey = false;
+                //game.player.moveMode = 'idle';
+                //game.isPressKey = false;
+                game.pressed.delete( e.code );
+                if ( game.pressed.size === 0 ) {
+                    game.isPressKey = false;
+                    game.player.moveMode = 'idle';
+                }
                 break;
             case 'ArrowUp':
                 //console.log('keyUnPress up');
-                game.player.moveMode = 'idle';
-                game.isPressKey = false;
+                //game.player.moveMode = 'idle';
+                //game.isPressKey = false;
+                game.pressed.delete( e.code );
+                if ( game.pressed.size === 0 ) {
+                    game.isPressKey = false;
+                    game.player.moveMode = 'idle';
+                }
                 break;
             case 'ArrowLeft':
                 //console.log('keyUnPress left');
-                game.player.moveMode = 'idle';
-                game.isPressKey = false;
+                //game.player.moveMode = 'idle';
+                //game.isPressKey = false;
+                game.pressed.delete( e.code );
+                if ( game.pressed.size === 0 ) {
+                    game.isPressKey = false;
+                    game.player.moveMode = 'idle';
+                }
                 break;
             case 'ArrowRight':
                 //console.log('keyUnPress right');
-                game.player.moveMode = 'idle';
-                game.isPressKey = false;
+                //game.player.moveMode = 'idle';
+                //game.isPressKey = false;
+                game.pressed.delete( e.code );
+                if ( game.pressed.size === 0 ) {
+                    game.isPressKey = false;
+                    game.player.moveMode = 'idle';
+                }
                 break;
             }
     }
