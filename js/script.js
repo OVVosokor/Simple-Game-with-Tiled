@@ -22,7 +22,7 @@ function canvasApp()  {
 
     //const canvasBG = document.getElementById('myCanvas_bg');
     //const ctxBG = canvasBG.getContext('2d');
-
+/*
     let mouseMoveCoords = {
         x: 0,
         y: 0
@@ -30,7 +30,7 @@ function canvasApp()  {
     let mouseClickCoords = {
         x: 0,
         y: 0
-    };
+    };*/
     class Game {
         mapIndexOffset =-1;
         mapRows = 20;
@@ -40,14 +40,18 @@ function canvasApp()  {
         isRun = false;
         frameIndex = 0;
         player;
+        itemsOfNpc = [];
         isPressKey = false;
 
         init() {
             canvas.width = this.mapCols * 32;
             canvas.height = this.mapRows * 32;
             this.isRun = true;
-            this.player = new Player( tileSheetOfWalks, 9, 100, 50, 100 );
            // console.log( this.player );
+            this.itemsOfNpc[0] = new Npc( tileSheetOfCombatDummy, 8, 50, 50, 100 );
+            this.player = new Player( tileSheetOfWalks, 9, 100, 50, 100 );
+
+            //console.log( this.itemsOfNpc[0] );
             gameLoop();
         }
         renderMap() {
@@ -108,10 +112,10 @@ function canvasApp()  {
             frameIndexCounter.countFrames();
             this.player.update();
             this.renderMap();
-            this.renderObj( tileSheetOfCombatDummy, 8, 50, 50, 100, false );
+            //this.renderObj( tileSheetOfCombatDummy, 8, 50, 50, 100, false );
 
-            this.player.render( 'idle' );
-
+            this.player.render();
+            this.itemsOfNpc[0].render();
             ctx.font = '20px sans-serif';
             ctx.textBaseline = 'top';
             ctx.fillText ( "FPS:" + frameRateCounter.lastFrameCount, 0, 10 ); 
@@ -150,7 +154,8 @@ function canvasApp()  {
             //delete dateTemp;
         }
     }
-    class Player {
+
+    class Npc {
         constructor( tileSheet, animFrames, x, y, delay ) {
             this.frameIndex = 0;
             this.tileSheet = tileSheet;
@@ -161,7 +166,84 @@ function canvasApp()  {
             this.dy = 0;
             this.delay = delay;
             this.direction = 'down';
-            this.sourceDY = 128;
+            this.sourceDY = 0; //128
+            this.moveMode = 'run';
+        }
+        test() {
+            console.log('test!!');
+            
+        }
+        /*
+        update() {
+            if ( game.isPressKey ) {
+                //this.moveMode = moveMode;
+                switch ( this.direction ) {
+                    case 'up':
+                        this.sourceDY = 0;
+                        this.dx = 0;
+                        this.dy = -1;
+                        break;
+                    case 'left':
+                        this.sourceDY = 64;
+                        this.dx = -1;
+                        this.dy = 0;
+                        break;
+                    case 'down':
+                        this.sourceDY = 128;
+                        this.dx = 0;
+                        this.dy = 1;
+                        break;
+                    case 'right':
+                        this.sourceDY = 192;
+                        this.dx = 1;
+                        this.dy = 0;
+                        break;
+                }
+                //console.log( this.y );
+                this.x = this.x + this.dx;
+                this.y = this.y + this.dy;
+            }
+        }
+        */
+        render() {
+            let animationFrames = [];
+            frameIndexCounter.delay = this.delay;
+
+            for ( let i = 0; i < this.animFrames; i++ ) {
+                animationFrames.push( i );
+            }
+
+            let sourceX = Math.floor( animationFrames[ this.frameIndex ] % 8 ) * 64;
+            let sourceY = Math.floor( animationFrames[ this.frameIndex ] / 8 ) * 64;
+            //console.log( typeof this.tileSheet );
+            ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, 64, 64 );
+
+            if ( this.moveMode === 'run' ) {
+                this.frameIndex = frameIndexCounter.frameIndex;
+                //console.log( this.frameIndex );
+                if ( this.frameIndex === animationFrames.length ) {
+                    this.frameIndex = 0;
+                    frameIndexCounter.frameIndex = 0;
+                }
+            }else{
+                this.frameIndex = 0;
+            }
+        }
+
+    }
+    class Player extends Npc {
+        constructor( tileSheet, animFrames, x, y, delay  ) {
+            super();
+            this.frameIndex = 0;
+            this.tileSheet = tileSheet;
+            this.animFrames = animFrames;
+            this.x = x;
+            this.y = y;
+            this.dx = 0;
+            this.dy = 0;
+            this.delay = delay;
+            this.direction = 'down';
+            this.sourceDY = 128; 
             this.moveMode = 'idle';
         }
 
@@ -197,31 +279,9 @@ function canvasApp()  {
         }
 
         render() {
-            let animationFrames = [];
-            frameIndexCounter.delay = this.delay;
-
-            for ( let i = 0; i < this.animFrames; i++ ) {
-                animationFrames.push( i );
-            }
-
-            let sourceX = Math.floor( animationFrames[ this.frameIndex ] % 8 ) * 64;
-            let sourceY = Math.floor( animationFrames[ this.frameIndex ] / 8 ) * 64;
-            ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, 64, 64 );
-
-            if ( this.moveMode === 'run' /*|| this.frameIndex !== 0*/ ) {
-                this.frameIndex = frameIndexCounter.frameIndex;
-                //console.log( this.frameIndex );
-                if ( this.frameIndex === animationFrames.length ) {
-                    this.frameIndex = 0;
-                    frameIndexCounter.frameIndex = 0;
-                }
-            }else{
-                this.frameIndex = 0;
-
-            }
+            super.render();
         }
     }
-
 
     //цикл игры
     function gameLoop() {
@@ -231,6 +291,7 @@ function canvasApp()  {
     }
     
     //обработчики событий
+    /*
     function mouseMoveHandler( e ) {
         mouseMoveCoords.x = e.offsetX;
         mouseMoveCoords.y = e.offsetY;
@@ -240,7 +301,7 @@ function canvasApp()  {
             mouseClickCoords.x = e.offsetX;
             mouseClickCoords.y = e.offsetY;
     }
-
+*/
     function mouseKeyDownHandler( e ) {
         switch ( e.code ) {
             case 'ArrowDown':
@@ -337,13 +398,10 @@ function canvasApp()  {
         }
     }
 
-
-
     const game = new Game();
     const frameRateCounter = new FrameRateCounter(1000);
     const frameIndexCounter = new FrameRateCounter(100);
 
-    //gameLoop();
 
 
 }
