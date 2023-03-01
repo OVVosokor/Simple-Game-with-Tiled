@@ -331,19 +331,29 @@ function canvasApp()  {
                 }
             }
         }
+        
+        updateNpc() {
+            for ( let i = 0; i < this.itemsOfStaticNpc.length; i++ ) {
+                if ( typeof this.itemsOfStaticNpc[i] === 'object' ) {
+                    this.itemsOfStaticNpc[i].update();
+                }
+            }
+        }
+
         drawScreen() {
             frameRateCounter.countFrames();
             frameIndexCounter.countFrames();
 
             this.updatePlayer();
             this.updateObject();
+            this.updateNpc();
 
             this.renderMap( 0 );
             this.renderObjects();
             this.renderNpc();
 
+
             this.renderPlayer();
-            //this.itemsOfNpc[0].render();
 
 
             ctx.font = '20px sans-serif';
@@ -375,20 +385,15 @@ function canvasApp()  {
                 this.frameLast = dateTemp.getTime();
                 this.frameCtr = 0;
             }
-
-            /*
-            if ( this.frameIndex >= 8 ) {
+            if ( this.frameIndex >= 7 ) { //TODO проверить значение
                 this.frameIndex = 0;
             }
-            */
             //delete dateTemp;
         }
     }
     class Npc {
         constructor( x, y ) {
             this.frameIndex = 0;
-            //this.tileSheet = tileSheet;
-            //this.animFrames = animFrames;
             this.x = x;
             this.y = y;
             this.width = 64;
@@ -396,11 +401,9 @@ function canvasApp()  {
             this.dx = 0;
             this.dy = 0;
             this.delay = 100;
-           // this.direction = 'down';
             this.sourceDY = 0; //128
-            this.moveMode = 'run';
-           // this.isAttack = false;
-            //this.visibility = visibility;
+            this.moveMode = 'run'; //run
+            this.isAnimate = true;
         }
 
         boundingBoxCollide( object1, object2 ) {
@@ -436,7 +439,8 @@ function canvasApp()  {
             //console.log( typeof this.tileSheet );
             ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width , this.height );
 
-            if ( this.moveMode === 'run' ) {
+            if ( this.moveMode === 'run' ) { //'run' this.moveMode === moveMode
+                //console.log( this.isAnimate , moveMode );
                 this.frameIndex = frameIndexCounter.frameIndex;
                 //console.log( this.frameIndex );
                 if ( this.frameIndex === animationFrames.length ) {
@@ -465,14 +469,19 @@ function canvasApp()  {
             this.sourceDY = 128; 
             this.moveMode = 'idle';
             this.name = '';
+
         }
 
-        boundingBoxCollide( object1, object2 ) {
-            if ( super.boundingBoxCollide( object1, object2 ) ) {
-                return true;
-            }else{
-                return false;
+        boundingStaticNpcCollide() {
+            for ( let i = 0; i < game.itemsOfStaticNpc.length; i++ ) {
+                if ( super.boundingBoxCollide( this, game.itemsOfStaticNpc[i] ) ) {
+                    return true;
+                }
             }
+        }
+        setAttack() {
+            Player.isAttack = true;
+            //console.log('ATTACK');
         }
 
         update() {
@@ -502,19 +511,18 @@ function canvasApp()  {
                             this.dy = 0;
                             break;
                         case 'Space':
-                            //this.sourceDY = 198;
-                            this.dx = 0;
-                            this.dy = 0;
+                            this.setAttack();
+                            //this.dx = 0;
+                            //this.dy = 0;
                             break;
                     }
                 }
+                //console.log( this.x, this.y );
                 if ( !game.pressedKeys.has( 'Space' ) ) {
                     this.x = this.x + this.dx;
                     this.y = this.y + this.dy;
                 }
-               // this.x = this.x + this.dx;
-                //this.y = this.y + this.dy;
-                //console.log( this.boundingBoxCollide( game.itemsOfNpc[0], this ) );
+
             }
         }
     }
@@ -523,13 +531,13 @@ function canvasApp()  {
             super();
             this.frameIndex = 0;
             this.type = activeType;
-            
+
             if ( activeType === 'walk' ) {
-                //this.isAttack = false;
+               // Player.isAttack = false;
                 this.tileSheet = costumes.walk[0].tileSheet;
                 this.animFrames = costumes.walk[0].animFrames;
             }else{
-                //this.isAttack = true;
+               // Player.isAttack = true;
                 this.tileSheet = costumes.attack[0].tileSheet;
                 this.animFrames = costumes.attack[0].animFrames;
             }
@@ -548,6 +556,7 @@ function canvasApp()  {
             this.visibility = visibility;
         }
         render() {
+
             if ( this.visibility ) {
 
                 let animationFrames = [];
@@ -556,11 +565,14 @@ function canvasApp()  {
                 for ( let i = 0; i < this.animFrames; i++ ) {
                     animationFrames.push( i );
                 }
+                //console.log( this.frameIndex );
 
                 let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.animFrames ) * 64;
                 let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.animFrames ) * 64;
                 //console.log( typeof this.tileSheet );
+                //console.log( this.tileSheet );
                 ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width, this.height );
+
                 //console.log( sourceX, sourceY );
                 if ( this.moveMode === 'run' ) {
                     this.frameIndex = frameIndexCounter.frameIndex;
@@ -666,6 +678,12 @@ function canvasApp()  {
         }
         update() {
             super.update();
+            if ( super.boundingStaticNpcCollide() && this.visibility  ) {
+                Player.isAttack = true;
+            }else{
+                Player.isAttack = false;
+            }
+
         }
         render() {
             if ( this.visibility ) {
@@ -739,10 +757,12 @@ function canvasApp()  {
             this.delay = 100// delay;
            // this.direction = 'down';
             this.sourceDY = 0; 
-            this.moveMode = 'run';
+            this.moveMode = 'idle';
+            this.isAnimate = true;
             this.visibility = visibility;
-            //console.log( tileSheet );
-            console.log( this.tileSheet, this.animFrames, x, y );
+            this.startTimeAnimate = 0;
+            this.endTimeAnimate = 0;
+            this.life = 100;
         }
 
         render() {
@@ -750,23 +770,32 @@ function canvasApp()  {
                 super.render();  
             }
         }
-        /*
+        
         boundingPlayerCollide() {
             for ( let i = 0; i < game.player.length; i++ ) {
-                if ( super.boundingBoxCollide( this, game.player[i] ) ) {
+                if ( super.boundingBoxCollide( this, game.player[i] ) ) { //** по-идее надо проверять только если класс оружие
                     return true;
                 }else  return false;
             }
         }
 
         update() {
-            if ( this.boundingPlayerCollide() ) {
-                this.sourceDY = 64;
+            //если атакован, вращается 1 сек
+            if ( this.boundingPlayerCollide() && Player.isAttack ) {
+                this.moveMode = 'run';
+                this.startTimeAnimate = new Date().getTime();
+                this.life -= 0.1;
+                //console.log( this.life);
             }else{
-                this.sourceDY = 0;
+                this.endTimeAnimate = new Date().getTime();
+                //console.log( this.life);
+
+                if ( ( this.endTimeAnimate - this.startTimeAnimate ) >= 1000 ) {
+                    this.moveMode = 'idle';
+                }
             }
         }
-        */
+        
     }
     class NonStaticNpc extends Npc {
 
@@ -839,6 +868,7 @@ function canvasApp()  {
                     }
                     if ( game.player[i].type === 'attack' ) {
                         game.player[i].visibility = true;
+                        //console.log( Player.isAttack );
                     }else
                         if ( game.player[i].type === 'walk' ) {
                             game.player[i].visibility = false;
