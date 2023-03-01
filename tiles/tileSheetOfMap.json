@@ -67,18 +67,18 @@
         {
          "draworder":"topdown",
          "id":7,
-         "name":"\u0421\u043b\u043e\u0439 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 1",
+         "name":"layerPlayer",
          "objects":[
                 {
                  "class":"",
-                 "height":50.6666666666666,
+                 "height":64,
                  "id":2,
-                 "name":"",
+                 "name":"placeSpawnPlayer",
                  "rotation":0,
                  "visible":true,
-                 "width":54.6666666666667,
-                 "x":17.3333333333333,
-                 "y":232
+                 "width":64,
+                 "x":37.3333,
+                 "y":280
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -89,18 +89,106 @@
         {
          "draworder":"topdown",
          "id":8,
-         "name":"\u0421\u043b\u043e\u0439 \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 2",
+         "name":"layerObject",
          "objects":[
                 {
                  "class":"",
-                 "height":54.6666666666666,
+                 "height":64,
                  "id":3,
-                 "name":"",
+                 "name":"object",
                  "rotation":0,
                  "visible":true,
-                 "width":53.3333333333334,
-                 "x":869.333333333333,
+                 "width":64,
+                 "x":869.333,
                  "y":420
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":4,
+                 "name":"object",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":810.666666666667,
+                 "y":184
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":5,
+                 "name":"object",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":645.333333333333,
+                 "y":409.333333333333
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":6,
+                 "name":"object",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":457.333333333333,
+                 "y":196
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":9,
+         "name":"layerNpc",
+         "objects":[
+                {
+                 "class":"",
+                 "height":64,
+                 "id":7,
+                 "name":"Npc",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":189.333333333333,
+                 "y":77.3333333333333
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":8,
+                 "name":"Npc",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":305.333333333333,
+                 "y":545.333333333333
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":9,
+                 "name":"Npc",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":733.333333333333,
+                 "y":34.6666666666666
+                }, 
+                {
+                 "class":"",
+                 "height":64,
+                 "id":10,
+                 "name":"Npc",
+                 "rotation":0,
+                 "visible":true,
+                 "width":64,
+                 "x":257.333333333333,
+                 "y":356
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -108,8 +196,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":9,
- "nextobjectid":4,
+ "nextlayerid":10,
+ "nextobjectid":11,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.9.2",
@@ -117,7 +205,7 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"tmw_desert_spacing2.tsx"
+         "source":"..\/..\/..\/Tiled-Project\/tmw_desert_spacing2.tsx"
         }],
  "tilewidth":32,
  "type":"map",
