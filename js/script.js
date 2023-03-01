@@ -807,7 +807,7 @@ function canvasApp()  {
 
         window.requestAnimationFrame( gameLoop );
     }
-    
+    !!!!!
     //обработчики событий
     /*
     function mouseMoveHandler( e ) {
