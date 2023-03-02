@@ -16,139 +16,210 @@ function canvasApp()  {
 
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
-
+    window.ctx = ctx;
     //const canvasUI = document.getElementById('myCanvas_ui');
     //const ctxUI = canvasUI.getContext('2d');
 
     //const canvasBG = document.getElementById('myCanvas_bg');
     //const ctxBG = canvasBG.getContext('2d');
-/*
-    let mouseMoveCoords = {
-        x: 0,
-        y: 0
-    };
-    let mouseClickCoords = {
-        x: 0,
-        y: 0
-    };*/
-    class Game {
-        mapIndexOffset =-1;
-        mapRows = 20;
-        mapCols = 30;
-        tileMaps = [];
-        mapIndex = undefined; 
-        isRun = false;
-        frameIndex = 0;
-        isPressKey = false;
-        pressedKeys = new Set();
-        //* items
-        player = [];
-        itemsOfObjects = [];
-        itemsOfStaticNpc = [];
-        //* places Spawn
-        placesSpawnPlayer = [];
-        placesSpawnObject = [];
-        placesSpawnStaticNpc = [];
 
-        costumes_walk = [
-            { tileSheet: tileSheetOfWalks,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfHEAD_chain_armor_helmet,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfFEET_shoes_brown,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfLEGS_pants_greenish,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_torso,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_bracers,
-                animFrames: 9
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_shoulders,
-                animFrames: 9
-            }
-        ];
-        costumes_attack = [
-            { tileSheet: tileSheetOfBODY_human_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfHEAD_chain_armor_helmet_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfFEET_shoes_brown_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfLEGS_pants_greenish_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_torso_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_bracers_attack,
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfTORSO_leather_armor_shoulders_attack,
-                animFrames: 6
-            },
-            { tileSheet: '', //quiver
-                animFrames: 6
-            },
-            { tileSheet: '', //belt
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfWEAPON_dagger, //dagger
-                animFrames: 6
-            },
-            { tileSheet: tileSheetOfWEAPON_shield_cutout_chain_armor_helmet, //shield
-                animFrames: 9
-            },
-            { tileSheet: '', //hands
-                animFrames: 6
-            }
+    //*application states
+	const GAME_STATE_INIT = 0;
+	const GAME_STATE_WAIT_FOR_LOAD = 10;
+	const GAME_STATE_TITLE = 20;
+	const GAME_STATE_NEW_GAME = 30;
+	const GAME_STATE_RENDER_PLAY_SCREEN=40;
+	const GAME_STATE_ANIMATE_PLAYER=50;
+	const GAME_STATE_EVALUATE_PLAYER_MOVE=60;
+	const GAME_STATE_ENEMY_MOVE=70;
+	const GAME_STATE_ANIMATE_ENEMY=80;
+	const GAME_STATE_EVALUATE_ENEMY_MOVE=90;
+	const GAME_STATE_EVALUATE_OUTCOME=100;
+	const GAME_STATE_ANIMATE_EXPLODE=110;
+	const GAME_STATE_CHECK_FOR_GAME_OVER=120;
+	const GAME_STATE_PLAYER_WIN=130;
+	const GAME_STATE_PLAYER_LOSE=140;
+	const GAME_STATE_GAME_OVER=150;
+	
+	var currentGameState=0;
+	var currentGameStateFunction=null;
 
-        ];
-        costume = { 
-            walk: this.costumes_walk,
-            attack: this.costumes_attack 
-        };
-        costumes_objects = [
-            {   //TODO сделать спрайты для объектов
-                tileSheet: tileSheetOfShields_spear,
-                animFrames: 1
-            }
-        ]
-        costumes_staticNpc = [
-            {   
-                tileSheet: tileSheetOfCombatDummy,
-                animFrames: 8
-            }
-        ]
-
-        constructor() {
-            //this.playerTest.costume = this.costume_1;
-            //console.log( this.playerTest );
+	//* loading
+    let loadCount = 0;
+    const itemsToLoad = 23;
+    let requestURL; 
+    let request; 
+    //* screens
+    let screenStarted = false;
+    //* playfield
+    let tileMaps = [];
+    let tileSheetOfMap = '';
+    const mapIndexOffset = -1;
+    const mapRows = 20;
+    const mapCols = 30;
+    let mapIndex = undefined; 
+    const xMin = 0;
+	const xMax = mapCols * 32;
+	const yMin = 0;
+	const yMax = mapRows * 32;
+    //* booles
+    //let isRun = false;
+    let isPressKey = false;
+    window.isPressKey = isPressKey;
+    //* key Presses
+    const pressesKeys = new Set();
+    window.pressesKeys = pressesKeys;
+    //* objects
+    let player = {};
+    let nonStaticNPC = [];
+    let staticNPC = [];
+    //* places Spawn
+    let placesSpawnPlayer = [];
+    let placesSpawnNonStaticNPC = [];
+    let placesSpawnStaticNPC = [];
+    //* tiles objects
+    let tilesBody = {
+        titleTiles: 'body',
+        human: {
+            walk: {},
+            attack: {}
+        },
+        skeleton: {
+            walk: {},
+            attack: {}
         }
+    };
+    let tilesHead = {
+        titleTiles: 'head',
+        walk: {},
+        attack: {}
+    };
+    let tilesFeet = {
+        titleTiles: 'feet',
+        walk: {},
+        attack: {}
+    };
+    let tilesLegs = {
+        titleTiles: 'legs',
+        walk: {},
+        attack: {}
+    };
+    let tilesTorso = {
+        titleTiles: 'torso',
+        walk: {},
+        attack: {}
+    };
+    let tilesBracers = {
+        titleTiles: 'bracers',
+        walk: {},
+        attack: {}
+    };
+    let tilesShoulders = {
+        titleTiles: 'shoulders',
+        walk: {},
+        attack: {}
+    };
+    let tilesDagger = {
+        titleTiles: 'dagger',
+        walk: {},
+        attack: {}
+    };
+    let tilesShield = {
+        titleTiles: 'shield',
+        walk: {},
+        attack: {}
+    };
+    let tilesQuiver = {
+        titleTiles: 'quiver',
+        walk: {},
+        attack: {}
+    };
+    let tilesDummy = {
+        titleTiles: 'dummy',
+        idle: {}
+    };
+    let tilesShieldSpear = {
+        titleTiles: 'shield_spear',
+        idle: {}
+    };
 
-        init() {
+    //* costumes
+    const costumeSwordman = [ tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders ];
+    const weapons = [ tilesDagger, tilesShield, tilesQuiver ];
+    const costumeStaticNPC = [ tilesDummy, tilesShieldSpear ];
+
+    function switchGameState( newState ) {
+
+    currentGameState = newState;
+
+    switch ( currentGameState ) {
+    
+        case GAME_STATE_INIT:
+            currentGameStateFunction = gameStateInit;
+            break;
+        case GAME_STATE_WAIT_FOR_LOAD:
+            currentGameStateFunction = gameStateWaitForLoad;
+            break;
+        case GAME_STATE_TITLE:
+            currentGameStateFunction = gameStateTitle;
+            break;
+        case GAME_STATE_NEW_GAME:
+             currentGameStateFunction = gameStateNewGame;
+             break;
+        case GAME_STATE_RENDER_PLAY_SCREEN:
+             currentGameStateFunction = gameStateRenderPlayScreen;
+             break;/*
+        case GAME_STATE_ANIMATE_PLAYER:
+             currentGameStateFunction=gameStateAnimatePlayer;
+             break;
+        case GAME_STATE_EVALUATE_PLAYER_MOVE:
+             currentGameStateFunction=gameStateEvaluatePlayerMove;
+             break;
+        case GAME_STATE_ENEMY_MOVE:
+             currentGameStateFunction=gameStateEnemyMove;
+             break;
+        case GAME_STATE_ANIMATE_ENEMY:
+             currentGameStateFunction=gameStateAnimateEnemy;
+             break;
+        case GAME_STATE_EVALUATE_ENEMY_MOVE:
+             currentGameStateFunction=gameStateEvaluateEnemyMove;
+             break;
+        case GAME_STATE_EVALUATE_OUTCOME:
+            currentGameStateFunction=gameStateEvaluateOutcome;
+            break;
+        case GAME_STATE_ANIMATE_EXPLODE:
+             currentGameStateFunction=gameStateAnimateExplode;
+             break;
+        case GAME_STATE_CHECK_FOR_GAME_OVER:
+            currentGameStateFunction=gameStateCheckForGameOver;
+            break;
+        case GAME_STATE_PLAYER_WIN:
+             currentGameStateFunction=gameStatePlayerWin;
+             break;
+        case GAME_STATE_PLAYER_LOSE:
+             currentGameStateFunction=gameStatePlayerLose;
+             break;*/
+    
+    }
+
+}
+
+
+        
+    function init() {
             canvas.width = this.mapCols * 32;
             canvas.height = this.mapRows * 32;
             this.isRun = true;
-            const spawnPlayerX = this.placesSpawnPlayer[0].x;
-            const spawnPlayerY = this.placesSpawnPlayer[0].y;
+            const spawnPlayerX = placesSpawnPlayer[0].x;
+            const spawnPlayerY = placesSpawnPlayer[0].y;
 
-            this.spawnPlayer( this.costume, spawnPlayerX, spawnPlayerY );
+            this.spawnPlayer( costume, spawnPlayerX, spawnPlayerY );
             //console.log( this.costume );
-            this.spawnObject( this.costumes_objects );
-            this.spawnNpc( this.costumes_staticNpc );
+            this.spawnObject( costumes_objects );
+            this.spawnNpc( costumes_staticNpc );
 
-            gameLoop();
         }
-        getItemOfCostume( type ) {
+    function   getItemOfCostume( type ) {
             switch ( type ) {
                 case 'head':
                     return 1;
@@ -174,7 +245,7 @@ function canvasApp()  {
                     return 11;
                 }
         }
-        getItemOfObject( type ) {
+    function   getItemOfObject( type ) {
             switch ( type ) {
                 case 'shield_spear':
                     return 0;
@@ -203,7 +274,7 @@ function canvasApp()  {
                 }
                 
         }
-        getItemOfNpc( type ) {
+    function  getItemOfNpc( type ) {
             switch ( type ) {
                 case 'combat_dummy':
                     return 0;
@@ -235,162 +306,100 @@ function canvasApp()  {
 
 
         
-        spawnPlayer( costumes, x, y ) {
-            this.player[0] = new Player( x, y );
-            //Body
-            this.player[1] = new Body( costumes, 'attack', x, y, false );
-            this.player[2] = new Body( costumes, 'walk', x, y, true );
-            //costume Walk
-            this.player[3] = new Clothes( costumes, 'walk', 'head', x, y, true );
-            this.player[4] = new Clothes( costumes, 'walk', 'feet', x, y, true );
-            this.player[5] = new Clothes( costumes, 'walk', 'legs', x, y, true );
-            this.player[6] = new Clothes( costumes, 'walk', 'torso', x, y, true );
-            this.player[7] = new Clothes( costumes, 'walk', 'bracers', x, y, true );
-            this.player[8] = new Clothes( costumes, 'walk', 'shoulders', x, y, true );
-            //costume Attack
-            this.player[9] = new Clothes( costumes, 'attack', 'head', x, y, false );
-            this.player[10] = new Clothes( costumes, 'attack', 'feet', x, y, false );
-            this.player[11] = new Clothes( costumes, 'attack', 'legs', x, y, false );
-            this.player[12] = new Clothes( costumes, 'attack', 'torso', x, y, false );
-            this.player[13] = new Clothes( costumes, 'attack', 'bracers', x, y, false );
-            this.player[14] = new Clothes( costumes, 'attack', 'shoulders', x, y, false );
-            //Weapon
-            this.player[15] = new Weapon( costumes, 'attack', 'dagger', x, y, false );
-            //console.log( this.player );
+    function   spawnPlayer( costumes, x, y ) {
+        player[0] = new Player( x, y );
+        //Body
+        player[1] = new Body( costumes, 'attack', x, y, false );
+        player[2] = new Body( costumes, 'walk', x, y, true );
+        //costume Walk
+        player[3] = new Clothes( costumes, 'walk', 'head', x, y, true );
+        player[4] = new Clothes( costumes, 'walk', 'feet', x, y, true );
+        player[5] = new Clothes( costumes, 'walk', 'legs', x, y, true );
+        player[6] = new Clothes( costumes, 'walk', 'torso', x, y, true );
+        player[7] = new Clothes( costumes, 'walk', 'bracers', x, y, true );
+        player[8] = new Clothes( costumes, 'walk', 'shoulders', x, y, true );
+        //costume Attack
+        player[9] = new Clothes( costumes, 'attack', 'head', x, y, false );
+        player[10] = new Clothes( costumes, 'attack', 'feet', x, y, false );
+        player[11] = new Clothes( costumes, 'attack', 'legs', x, y, false );
+        player[12] = new Clothes( costumes, 'attack', 'torso', x, y, false );
+        player[13] = new Clothes( costumes, 'attack', 'bracers', x, y, false );
+        player[14] = new Clothes( costumes, 'attack', 'shoulders', x, y, false );
+        //Weapon
+        player[15] = new Weapon( costumes, 'attack', 'dagger', x, y, false );
+        //console.log( player );
+    }
+    function    spawnObject( costumes ) {
+        for ( let i = 0; i < placesSpawnNonStaticNPC.length; i++ ) {
+            nonStaticNPC[i] = new ObjectOnMap( costumes, 'shield_spear', placesSpawnNonStaticNPC[i].x, this.placesSpawnObject[i].y, true );
         }
-        spawnObject( costumes ) {
-            for ( let i = 0; i < this.placesSpawnObject.length; i++ ) {
-                this.itemsOfObjects[i] = new ObjectOnMap( costumes, 'shield_spear', this.placesSpawnObject[i].x, this.placesSpawnObject[i].y, true );
-            }
-            //console.log(this.itemsOfObjects);
+        //console.log(this.itemsOfObjects);
+    }
+    function  spawnNpc( costumes ) {
+        for ( let i = 0; i < placesSpawnStaticNPC.length; i++ ) {
+            staticNPC[i] = new StaticNpc( costumes, 'combat_dummy', placesSpawnStaticNPC[i].x, this.placesSpawnStaticNpc[i].y, true );
         }
-        spawnNpc( costumes ) {
-            for ( let i = 0; i < this.placesSpawnStaticNpc.length; i++ ) {
-                this.itemsOfStaticNpc[i] = new StaticNpc( costumes, 'combat_dummy', this.placesSpawnStaticNpc[i].x, this.placesSpawnStaticNpc[i].y, true );
-            }
-            //console.log( costumes );
-        }
-
-        renderMap( idMap ) {
-            if ( this.isRun ) {
-                for ( let rowCtr = 0; rowCtr < this.mapRows; rowCtr++ ) {
-                    for ( let colCtr = 0; colCtr < this.mapCols; colCtr++ ) {
-                        if ( this.mapIndex === undefined ) {
-                            this.mapIndex = 0;
-                        }
-                        //console.log( 'mapIndex:', this.mapIndex );
-                        let tileId = this.tileMaps[idMap][ this.mapIndex ] + this.mapIndexOffset;
-                       // console.log( 'mapIndex:', this.mapIndex, 'tileID:', this.tileMap[ this.mapIndex ] );
-                        let sourceX = Math.floor( tileId % 8 ) * 33;
-                        let sourceY = Math.floor( tileId / 8 ) * 33;
-                        //console.log( sourceX+1, sourceY+1, 'colCtr:', colCtr, 'rowCtr:', rowCtr );
-                        ctx.drawImage( tileSheetOfMap, sourceX + 1, sourceY + 1, 32, 32, colCtr * 32, rowCtr * 32, 32, 32 );
-                        this.mapIndex++;
-                        //console.log( this.tileMap.length );
-                        if ( this.mapIndex === this.tileMaps[idMap].length ) {
-                            this.mapIndex = undefined;
-                        }
-                    }
-                }
-            }
-        }
-        renderPlayer() {
-            for ( let i = 1; i < this.player.length; i++ ) {
-                if ( typeof this.player[i] === 'object' ) {
-                    this.player[i].render();
-                }
-            }
-        }
-        renderObjects() {
-            for ( let i = 0; i < this.itemsOfObjects.length; i++ ) {
-                if ( typeof this.itemsOfObjects[i] === 'object' ) {
-                    this.itemsOfObjects[i].render();
-                }
-            }
-        }
-        renderNpc() {
-            for ( let i = 0; i < this.itemsOfStaticNpc.length; i++ ) {
-                if ( typeof this.itemsOfStaticNpc[i] === 'object' ) {
-                    this.itemsOfStaticNpc[i].render();
-                }
-            }
-        }
-        updatePlayer() {
-            for ( let i = 0; i < this.player.length; i++ ) {
-                if ( typeof this.player[i] === 'object' ) {
-                    this.player[i].update();
-                }
-            }
-
-        }
-
-        updateObject() {
-            for ( let i = 0; i < this.itemsOfObjects.length; i++ ) {
-                if ( typeof this.itemsOfObjects[i] === 'object' ) {
-                    this.itemsOfObjects[i].update();
-                }
-            }
-        }
-        
-        updateNpc() {
-            for ( let i = 0; i < this.itemsOfStaticNpc.length; i++ ) {
-                if ( typeof this.itemsOfStaticNpc[i] === 'object' ) {
-                    this.itemsOfStaticNpc[i].update();
-                }
-            }
-        }
-
-        drawScreen() {
-            frameRateCounter.countFrames();
-            frameIndexCounter.countFrames();
-
-            this.updatePlayer();
-            this.updateObject();
-            this.updateNpc();
-
-            this.renderMap( 0 );
-            this.renderObjects();
-            this.renderNpc();
-
-
-            this.renderPlayer();
-
-
-            ctx.font = '20px sans-serif';
-            ctx.textBaseline = 'top';
-            ctx.fillText ( "FPS:" + frameRateCounter.lastFrameCount, 0, 10 ); 
-        }
+        //console.log( costumes );
     }
 
-
-    class FrameRateCounter {
-        constructor( delay ) {
-            this.lastFrameCount = 0;
-            let dateTemp = new Date();
-            this.frameLast = dateTemp.getTime();
-            //delete dateTemp;
-            this.frameCtr = 0;
-            this.frameIndex = 0;
-            this.delay = delay;
-        }
-        countFrames() {
-            let dateTemp =new Date();	
-            this.frameCtr++;
-
-            if ( dateTemp.getTime() >= this.frameLast + this.delay ) {
-                //console.log( "frame event" );
-                this.frameIndex++;
-                //console.log( this.frameIndex );
-                this.lastFrameCount = this.frameCtr;
-                this.frameLast = dateTemp.getTime();
-                this.frameCtr = 0;
+    function    renderPlayer() {
+        for ( let i = 1; i < player.length; i++ ) {
+            if ( typeof player[i] === 'object' ) {
+                player[i].render();
             }
-            if ( this.frameIndex >= 7 ) { //TODO проверить значение
-                this.frameIndex = 0;
-            }
-            //delete dateTemp;
         }
     }
+    function   renderObjects() {
+        for ( let i = 0; i < nonStaticNPC.length; i++ ) {
+            if ( typeof nonStaticNPC[i] === 'object' ) {
+                nonStaticNPC[i].render();
+            }
+        }
+    }
+    function   renderNpc() {
+        for ( let i = 0; i < staticNPC.length; i++ ) {
+            if ( typeof staticNPC[i] === 'object' ) {
+                staticNPC[i].render();
+            }
+        }
+    }
+    function   updatePlayer() {
+        for ( let i = 0; i < player.length; i++ ) {
+            if ( typeof player[i] === 'object' ) {
+                player[i].update();
+            }
+        }
+
+    }
+
+    function  updateObject() {
+        for ( let i = 0; i < nonStaticNPC.length; i++ ) {
+            if ( typeof nonStaticNPC[i] === 'object' ) {
+                nonStaticNPC[i].update();
+            }
+        }
+    }
+    
+    function   updateNpc() {
+        for ( let i = 0; i < staticNPC.length; i++ ) {
+            if ( typeof staticNPC[i] === 'object' ) {
+                staticNPC[i].update();
+            }
+        }
+    }
+/*
+    function  drawScreen() {
+        frameRateCounter.countFrames();
+        frameIndexCounter.countFrames();
+
+        updatePlayer();
+        updateObject();
+        updateNpc();
+        renderMap( 0 );
+        renderObjects();
+        renderNpc();
+        renderPlayer();
+    }*/
     class Npc {
         constructor( x, y ) {
             this.frameIndex = 0;
@@ -801,68 +810,395 @@ function canvasApp()  {
 
     }
 
-    //цикл игры
-    function gameLoop() {
-        game.drawScreen();
+    function gameStateWaitForLoad() {
+		//do nothing while loading events occur
+		//console.log( "doing nothing..." );
+	}
 
-        window.requestAnimationFrame( gameLoop );
+    function gameStateInit() {
+
+        //*** MAP
+        tileSheetOfMap = new Image();
+        tileSheetOfMap.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfMap.src = "tiles/tmw_desert_spacing.png";
+
+        //************** PLAYER COSTUME WALK
+        //*body walk
+        const tileSheetOfWalks = new Image();
+        tileSheetOfWalks.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfWalks.src = "tiles/walkcycle/BODY_male.png";
+        //add propeties
+        tilesBody.human.walk.tileSheet = tileSheetOfWalks;
+        tilesBody.human.walk.animFrames = 9;
+        //*head walk
+        const tileSheetOfHEAD_chain_armor_helmet = new Image();
+        tileSheetOfHEAD_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfHEAD_chain_armor_helmet.src = "tiles/walkcycle/HEAD_chain_armor_helmet.png";
+        //add propeties
+        tilesHead.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
+        tilesHead.walk.animFrames = 9;
+        //*bracers walk
+        const tileSheetOfTORSO_leather_armor_bracers = new Image();
+        tileSheetOfTORSO_leather_armor_bracers.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_bracers.src = "tiles/walkcycle/TORSO_leather_armor_bracers.png";
+        //add propeties
+        tilesBracers.walk.tileSheet = tileSheetOfTORSO_leather_armor_bracers;
+        tilesBracers.walk.animFrames = 9;
+        //*feet walk
+        const tileSheetOfFEET_shoes_brown = new Image();
+        tileSheetOfFEET_shoes_brown.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfFEET_shoes_brown.src = "tiles/walkcycle/FEET_shoes_brown.png";
+        //add propeties
+        tilesFeet.walk.tileSheet = tileSheetOfFEET_shoes_brown;
+        tilesFeet.walk.animFrames = 9;
+        //*torso walk
+        const tileSheetOfTORSO_leather_armor_torso = new Image();
+        tileSheetOfTORSO_leather_armor_torso.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_torso.src = "tiles/walkcycle/TORSO_leather_armor_torso.png";
+        //add propeties
+        tilesTorso.walk.tileSheet = tileSheetOfTORSO_leather_armor_torso;
+        tilesTorso.walk.animFrames = 9;
+        //*shoulders walk
+        const tileSheetOfTORSO_leather_armor_shoulders = new Image();
+        tileSheetOfTORSO_leather_armor_shoulders.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_shoulders.src = "tiles/walkcycle/TORSO_leather_armor_shoulders.png";
+        //add propeties
+        tilesShoulders.walk.tileSheet = tileSheetOfTORSO_leather_armor_shoulders;
+        tilesShoulders.walk.animFrames = 9;
+        //*legs walk
+        const tileSheetOfLEGS_pants_greenish = new Image();
+        tileSheetOfLEGS_pants_greenish.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfLEGS_pants_greenish.src = "tiles/walkcycle/LEGS_pants_greenish.png";
+        //add propeties
+        tilesLegs.walk.tileSheet = tileSheetOfLEGS_pants_greenish;
+        tilesLegs.walk.animFrames = 9;
+
+        //************** PLAYER COSTUME ATTACK
+        //*body attack
+        const tileSheetOfBODY_human_attack = new Image();
+        tileSheetOfBODY_human_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfBODY_human_attack.src = "tiles/slash/BODY_human.png";
+        //add propeties
+        tilesBody.human.attack.tileSheet = tileSheetOfBODY_human_attack;
+        tilesBody.human.attack.animFrames = 6;
+        //*head attack
+        const tileSheetOfHEAD_chain_armor_helmet_attack = new Image();
+        tileSheetOfHEAD_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfHEAD_chain_armor_helmet_attack.src = "tiles/slash/HEAD_chain_armor_helmet.png";
+        //add propeties
+        tilesHead.attack.tileSheet = tileSheetOfHEAD_chain_armor_helmet_attack;
+        tilesHead.attack.animFrames = 6;
+        //*feet attack
+        const tileSheetOfFEET_shoes_brown_attack = new Image();
+        tileSheetOfFEET_shoes_brown_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfFEET_shoes_brown_attack.src = "tiles/slash/FEET_shoes_brown.png";
+        //add propeties
+        tilesFeet.attack.tileSheet = tileSheetOfFEET_shoes_brown_attack;
+        tilesFeet.attack.animFrames = 6;
+        //*legs attack
+        const tileSheetOfLEGS_pants_greenish_attack = new Image();
+        tileSheetOfLEGS_pants_greenish_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfLEGS_pants_greenish_attack.src = "tiles/slash/LEGS_pants_greenish.png";
+        //add propeties
+        tilesLegs.attack.tileSheet = tileSheetOfLEGS_pants_greenish_attack;
+        tilesLegs.attack.animFrames = 6;
+        //*torso attack
+        const tileSheetOfTORSO_leather_armor_torso_attack = new Image();
+        tileSheetOfTORSO_leather_armor_torso_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_torso_attack.src = "tiles/slash/TORSO_leather_armor_torso.png";
+        //add propeties
+        tilesTorso.attack.tileSheet = tileSheetOfTORSO_leather_armor_torso_attack;
+        tilesTorso.attack.animFrames = 6;
+        //*bracers attack
+        const tileSheetOfTORSO_leather_armor_bracers_attack = new Image();
+        tileSheetOfTORSO_leather_armor_bracers_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_bracers_attack.src = "tiles/slash/TORSO_leather_armor_bracers.png";
+        //add propeties
+        tilesBracers.attack.tileSheet = tileSheetOfTORSO_leather_armor_bracers_attack;
+        tilesBracers.attack.animFrames = 9;
+        //*shoulders attack
+        const tileSheetOfTORSO_leather_armor_shoulders_attack = new Image();
+        tileSheetOfTORSO_leather_armor_shoulders_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfTORSO_leather_armor_shoulders_attack.src = "tiles/slash/TORSO_leather_armor_shoulders.png";
+        //add propeties
+        tilesShoulders.attack.tileSheet = tileSheetOfTORSO_leather_armor_shoulders_attack;
+        tilesShoulders.attack.animFrames = 9;
+
+        //************** WEAPON
+        //*dagger
+        const tileSheetOfWEAPON_dagger = new Image();
+        tileSheetOfWEAPON_dagger.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfWEAPON_dagger.src = "tiles/slash/WEAPON_dagger.png";
+        //add propeties
+        tilesDagger.attack.tileSheet = tileSheetOfWEAPON_dagger;
+        tilesDagger.attack.animFrames = 6;
+        //*shield
+        const tileSheetOfWEAPON_shield_cutout_chain_armor_helmet = new Image();
+        tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.src = "tiles/walkcycle/WEAPON_shield_cutout_chain_armor_helmet.png";
+        //add propeties
+        tilesShield.walk.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet;
+        tilesShield.walk.animFrames = 9;
+        //*quiver
+        const tileSheetOfBEHIND_quiver = new Image();
+        tileSheetOfBEHIND_quiver.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfBEHIND_quiver.src = "tiles/walkcycle/BEHIND_quiver.png";
+        //add propeties
+        tilesQuiver.walk.tileSheet = tileSheetOfBEHIND_quiver;
+        tilesQuiver.walk.animFrames = 9;
+
+        //************** NONSTATIC NPC
+        //*body walk
+        const tileSheetOfBody_skeleton = new Image();
+        tileSheetOfBody_skeleton.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfBody_skeleton.src = "tiles/walkcycle/BODY_skeleton.png";
+        //add propeties
+        tilesBody.skeleton.walk.tileSheet = tileSheetOfBody_skeleton;
+        tilesBody.skeleton.walk.animFrames = 9;
+        //*body attack
+        const tileSheetOfBody_skeleton_attack = new Image();
+        tileSheetOfBody_skeleton_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfBody_skeleton_attack.src = "tiles/slash/BODY_skeleton.png";
+        //add propeties
+        tilesBody.skeleton.attack.tileSheet = tileSheetOfBody_skeleton_attack;
+        tilesBody.skeleton.attack.animFrames = 6;
+
+        //************** STATIC NPC
+        //*combat dummy
+        const tileSheetOfCombatDummy = new Image();
+        tileSheetOfCombatDummy.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfCombatDummy.src = "tiles/combat_dummy/BODY_animation.png";
+        //add propeties
+        tilesDummy.idle.tileSheet = tileSheetOfCombatDummy;
+        tilesDummy.idle.animFrames = 7;
+        //*shields_spear
+        const tileSheetOfShields_spear = new Image();
+        tileSheetOfShields_spear.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfShields_spear.src = "tiles/objectsOnMap/WEAPON_spear_2.png";
+        //add propeties
+        tilesShieldSpear.idle.tileSheet = tileSheetOfShields_spear;
+        tilesShieldSpear.idle.animFrames = 1;
+
+        //************** LOAD JSON
+        requestURL = 'tiles/tileSheetOfMap.json';
+        request = new XMLHttpRequest();
+        request.open( 'GET', requestURL );
+        request.responseType = 'json';
+        request.send();
+        
+        request.addEventListener( 'load', itemLoaded, false );
+
+        
+        switchGameState( GAME_STATE_WAIT_FOR_LOAD );
     }
+
+    function itemLoaded() { //page 545
+
+        loadCount++;
+		//console.log("loading:" + loadCount);
+        if ( loadCount >= itemsToLoad ) {
+
+            //tileSheetOfMap.removeEventListener( 'load', itemLoaded , false );
+            request.removeEventListener( 'load', itemLoaded, false );
+            //TODO добавить все removeEventListener
+            //*
+            //*
+            jsonObj = request.response; 
+            tileMaps[0] = jsonObj.layers[0].data;
+            tileMaps[1] = jsonObj.layers[1].data;
+            //console.log( tileMaps );
+            placesSpawnPlayer[0] = jsonObj.layers[2].objects[0];
+            //console.log( placeSpawnPlayer[0] );
+            placesSpawnNonStaticNPC[0] = jsonObj.layers[3].objects[0];
+            placesSpawnNonStaticNPC[1] = jsonObj.layers[3].objects[1];
+            placesSpawnNonStaticNPC[2] = jsonObj.layers[3].objects[2];
+            placesSpawnNonStaticNPC[3] = jsonObj.layers[3].objects[3];
+            //console.log(  placesSpawnObject );
+
+            placesSpawnStaticNPC[0] = jsonObj.layers[4].objects[0];
+            placesSpawnStaticNPC[1] = jsonObj.layers[4].objects[1];
+            placesSpawnStaticNPC[2] = jsonObj.layers[4].objects[2];
+            placesSpawnStaticNPC[3] = jsonObj.layers[4].objects[3];
+            //console.log(  placesSpawnNpc );
+            //console.log( jsonObj.layers.length );
+
+            console.log( costumeSwordman );
+            console.log( weapons );
+            console.log( costumeStaticNPC );
+
+            switchGameState( GAME_STATE_TITLE );
+        }
+    }
+
+    function gameStateTitle() {
+
+        if ( !screenStarted ) {
+            initCanvas();
+            fillBackground();
+            setTextStyleTitle();
+            
+			ctx.fillText  ( "Medieval Simple Game with Tiled", 190, 70 );
+			ctx.fillText  ( "Press Space To Play", 300, 140 );
+
+            screenStarted = true;
+        }else{
+			//wait for space key click
+			if ( pressesKeys.has('Space') ) {
+				//console.log("space pressed");
+				switchGameState( GAME_STATE_NEW_GAME );
+				screenStarted = false;
+			}
+        }
+    }
+
+    function gameStateNewGame(){
+		//score=0;
+		//enemy=[];
+		//explosions=[];
+		//playField=[];
+		//items=[];
+		//resetPlayer();
+		createPlayStage();
+		
+		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
+	}
+
+    function createPlayStage() {
+        //!spawns
+        player = new HUMAN( tilesBody, costumeSwordman, 200, 200, true, true );
+        console.log( player );
+        console.log('create play field');
+    }
+
+    function gameStateRenderPlayScreen() {
+        frameRateCounter.countFrames();
+        frameIndexCounter.countFrames();
+        
+        //!check
+        //!update
+        
+        renderPlayScreen();
+    }
+
+    function drawPlayField( idMap ) {
+        //console.log( tileMaps );
+        for ( let rowCtr = 0; rowCtr < mapRows; rowCtr++ ) {
+            for ( let colCtr = 0; colCtr < mapCols; colCtr++ ) {
+                if ( mapIndex === undefined ) {
+                    mapIndex = 0;
+                }
+                //console.log( 'mapIndex:', mapIndex );
+                let tileId = tileMaps[idMap][ mapIndex ] + mapIndexOffset;
+                let sourceX = Math.floor( tileId % 8 ) * 33;
+                let sourceY = Math.floor( tileId / 8 ) * 33;
+                //console.log( sourceX+1, sourceY+1, 'colCtr:', colCtr, 'rowCtr:', rowCtr );
+                ctx.drawImage( tileSheetOfMap, sourceX + 1, sourceY + 1, 32, 32, colCtr * 32, rowCtr * 32, 32, 32 );
+                mapIndex++;
+
+                if ( mapIndex === tileMaps[idMap].length ) {
+                    //console.log( mapIndex );
+                    mapIndex = undefined;
+                }
+            }
+        }
+    }
+
+    function renderPlayScreen() {
+		drawPlayField(0);
+        drawFPSCounter();
+        player.render();
+        player.update()
+
+		//!drawPlayer();
+		//!drawEnemy();
+		
+	}
+
+    function drawFPSCounter() {
+        ctx.fillStyle = 'black';
+        ctx.font = '20px sans-serif';
+        ctx.textBaseline = 'top';
+        ctx.fillText ( "FPS:" + frameRateCounter.lastFrameCount, 0, 10 ); 
+    }
+
+    function initCanvas() {
+        canvas.width = xMax;
+        canvas.height = yMax;
+    }
+
+    function fillBackground() {
+		// draw background and text 
+		ctx.fillStyle = '#000000';
+		ctx.fillRect( xMin, yMin, xMax, yMax );
+	}
+	
+	function setTextStyleTitle() {
+		ctx.fillStyle    = '#54ebeb'; 
+		ctx.font         = '40px _sans';
+		ctx.textBaseline = 'top';
+	}
+
+
+
+    //* counters
+    const frameRateCounter = new FrameRateCounter(1000);
+    const frameIndexCounter = new FrameRateCounter(100);
+    window.frameIndexCounter = frameIndexCounter;
     
-    //обработчики событий
-    /*
-    function mouseMoveHandler( e ) {
-        mouseMoveCoords.x = e.offsetX;
-        mouseMoveCoords.y = e.offsetY;
-    }
-
-    function mouseUpHandler( e ) {
-            mouseClickCoords.x = e.offsetX;
-            mouseClickCoords.y = e.offsetY;
-    }
-    */
-    function mouseKeyDownHandler( e ) {
+    //* keys handler
+    function keyDownHandler( e ) {
         //console.log( e.code );
 
         switch ( e.code ) {
             case 'ArrowDown':
-                game.pressedKeys.add( e.code );
+                pressesKeys.add( e.code );
+                window.isPressKey = isPressKey
+
+                /*
                 for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object'  ) {
                         game.player[i].moveMode = 'run';
                     }
-                }
-                game.isPressKey = true;
+                }*/
+                isPressKey = true;
                 break;
             case 'ArrowUp':
+                /*
                 for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object'/* && i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object' ) {
                         game.player[i].moveMode = 'run';
                     }
-                }
-                game.isPressKey = true;
-                game.pressedKeys.add( e.code );
+                }*/
+                isPressKey = true;
+                window.isPressKey = isPressKey
+
+                pressesKeys.add( e.code );
                 break;
-            case 'ArrowLeft':
+            case 'ArrowLeft':/*
                 for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object'  ) {
                         game.player[i].moveMode = 'run';
                     }
-                }
-                game.isPressKey = true;
-                game.pressedKeys.add( e.code );
+                }*/
+                isPressKey = true;
+                window.isPressKey = isPressKey
+
+                pressesKeys.add( e.code );
                 break;
-            case 'ArrowRight':
+            case 'ArrowRight':/*
                 for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object'  ) {
                         game.player[i].moveMode = 'run';
                     }
-                }
-                game.isPressKey = true;
-                game.pressedKeys.add( e.code );
+                }*/
+                isPressKey = true;
+                window.isPressKey = isPressKey
+
+                pressesKeys.add( e.code );
                 break;
-            case 'Space':
+            case 'Space':/*
                 for ( let i = 1; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object'  ) {
                         game.player[i].moveMode = 'run';
 
                     }
@@ -874,67 +1210,67 @@ function canvasApp()  {
                             game.player[i].visibility = false;
                         }
 
-                }
+                }*/
                     //game.player[1].visibility = true;
                     //game.player[2].visibility = false;
 
-                game.isPressKey = true;
-                game.pressedKeys.add( e.code );
+                isPressKey = true;
+                window.isPressKey = isPressKey
+                pressesKeys.add( e.code );
                 break;
             }
     }
-    function mouseKeyUpHandler( e ) {
+    function keyUpHandler( e ) {
         switch ( e.code ) {
             case 'ArrowDown':
-                game.pressedKeys.delete( e.code );
+                pressesKeys.delete( e.code );/*
                 if ( game.pressedKeys.size === 0 ) {
                     game.isPressKey = false;
                     for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                        if ( typeof game.player[i] === 'object'  ) {
                             game.player[i].moveMode = 'idle';
                         }
                     }
-                    }
+                    }*/
                 break;
             case 'ArrowUp':
-                game.pressedKeys.delete( e.code );
+                pressesKeys.delete( e.code );/*
                 if ( game.pressedKeys.size === 0 ) {
                     game.isPressKey = false;
                     for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object'/* && i !== 6 */) {
+                        if ( typeof game.player[i] === 'object') {
                             game.player[i].moveMode = 'idle';
                         }
                     }
-                }
+                }*/
                 break;
             case 'ArrowLeft':
-                game.pressedKeys.delete( e.code );
+                pressesKeys.delete( e.code );/*
                 if ( game.pressedKeys.size === 0 ) {
                     game.isPressKey = false;
                     for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object'/* && i !== 6*/ ) {
+                        if ( typeof game.player[i] === 'object' ) {
                             game.player[i].moveMode = 'idle';
                         }
                     }
-                }
+                }*/
                 break;
             case 'ArrowRight':
-                game.pressedKeys.delete( e.code );
+                pressesKeys.delete( e.code );/*
                 if ( game.pressedKeys.size === 0 ) {
                     game.isPressKey = false;
                     for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                    if ( typeof game.player[i] === 'object' ) {
                         game.player[i].moveMode = 'idle';
                     }
                 }
-            }
+            }*/
                 break;
             case 'Space':
-                game.pressedKeys.delete( e.code );
-                //if ( game.pressed.size === 0 ) {
-                    game.isPressKey = false;
+                pressesKeys.delete( e.code );
+                    isPressKey = false;/*
                     for ( let i = 1; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object' /*&& i !== 6*/ ) {
+                        if ( typeof game.player[i] === 'object'  ) {
                             game.player[i].moveMode = 'idle';
                         }
                         if ( game.player[i].type === 'attack' ) {
@@ -943,188 +1279,26 @@ function canvasApp()  {
                             if ( game.player[i].type === 'walk' ) {
                                 game.player[i].visibility = true;
                             }
-    
-                    }
-                //game.player[1].visibility = false;
-                //game.player[2].visibility = true;
-
-               // }
+                    }*/
                 break;
     
             }
     }
 
-    //слушатели событий
-       // window.addEventListener( 'mousemove', mouseMoveHandler );
-        //window.addEventListener( 'mouseup', mouseUpHandler );
-    window.addEventListener( 'keydown', mouseKeyDownHandler );
-    window.addEventListener( 'keyup', mouseKeyUpHandler );
-    //*** MAP
-    const tileSheetOfMap = new Image();
-    tileSheetOfMap.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfMap.src = "tiles/tmw_desert_spacing.png";
-    //*** PLAYER costume Walk
-    const tileSheetOfWalks = new Image();
-    tileSheetOfWalks.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfWalks.src = "tiles/walkcycle/BODY_male.png";
-
-    const tileSheetOfHEAD_chain_armor_helmet = new Image();
-    tileSheetOfHEAD_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfHEAD_chain_armor_helmet.src = "tiles/walkcycle/HEAD_chain_armor_helmet.png";
-
-    const tileSheetOfTORSO_leather_armor_bracers = new Image();
-    tileSheetOfTORSO_leather_armor_bracers.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_bracers.src = "tiles/walkcycle/TORSO_leather_armor_bracers.png";
-
-    const tileSheetOfFEET_shoes_brown = new Image();
-    tileSheetOfFEET_shoes_brown.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfFEET_shoes_brown.src = "tiles/walkcycle/FEET_shoes_brown.png";
-
-    const tileSheetOfTORSO_leather_armor_torso = new Image();
-    tileSheetOfTORSO_leather_armor_torso.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_torso.src = "tiles/walkcycle/TORSO_leather_armor_torso.png";
-
-    const tileSheetOfTORSO_leather_armor_shoulders = new Image();
-    tileSheetOfTORSO_leather_armor_shoulders.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_shoulders.src = "tiles/walkcycle/TORSO_leather_armor_shoulders.png";
-
-    const tileSheetOfLEGS_pants_greenish = new Image();
-    tileSheetOfLEGS_pants_greenish.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfLEGS_pants_greenish.src = "tiles/walkcycle/LEGS_pants_greenish.png";
-
-    //*** PLAYER costume Attack
-    const tileSheetOfBODY_human_attack = new Image();
-    tileSheetOfBODY_human_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfBODY_human_attack.src = "tiles/slash/BODY_human.png";
-
-    const tileSheetOfHEAD_chain_armor_helmet_attack = new Image();
-    tileSheetOfHEAD_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfHEAD_chain_armor_helmet_attack.src = "tiles/slash/HEAD_chain_armor_helmet.png";
-
-    const tileSheetOfFEET_shoes_brown_attack = new Image();
-    tileSheetOfFEET_shoes_brown_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfFEET_shoes_brown_attack.src = "tiles/slash/FEET_shoes_brown.png";
-
-    const tileSheetOfLEGS_pants_greenish_attack = new Image();
-    tileSheetOfLEGS_pants_greenish_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfLEGS_pants_greenish_attack.src = "tiles/slash/LEGS_pants_greenish.png";
-
-    const tileSheetOfTORSO_leather_armor_torso_attack = new Image();
-    tileSheetOfTORSO_leather_armor_torso_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_torso_attack.src = "tiles/slash/TORSO_leather_armor_torso.png";
-
-    const tileSheetOfTORSO_leather_armor_bracers_attack = new Image();
-    tileSheetOfTORSO_leather_armor_bracers_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_bracers_attack.src = "tiles/slash/TORSO_leather_armor_bracers.png";
-
-    const tileSheetOfTORSO_leather_armor_shoulders_attack = new Image();
-    tileSheetOfTORSO_leather_armor_shoulders_attack.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfTORSO_leather_armor_shoulders_attack.src = "tiles/slash/TORSO_leather_armor_shoulders.png";
-
-    //*** WEAPON
-    const tileSheetOfWEAPON_dagger = new Image();
-    tileSheetOfWEAPON_dagger.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfWEAPON_dagger.src = "tiles/slash/WEAPON_dagger.png";
-
-    const tileSheetOfWEAPON_shield_cutout_chain_armor_helmet = new Image();
-    tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.src = "tiles/walkcycle/WEAPON_shield_cutout_chain_armor_helmet.png";
-
-    const tileSheetOfBEHIND_quiver = new Image();
-    tileSheetOfBEHIND_quiver.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfBEHIND_quiver.src = "tiles/walkcycle/BEHIND_quiver.png";
-
-    //*** Objects on Map
-    const tileSheetOfShields_spear = new Image();
-    tileSheetOfShields_spear.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfShields_spear.src = "tiles/objectsOnMap/WEAPON_spear_2.png";
-
-    //** NonStatic Npc
-    const tileSheetOfBody_skeleton = new Image();
-    tileSheetOfBody_skeleton.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfBody_skeleton.src = "tiles/walkcycle/BODY_skeleton.png";
-
-    //*** Static Npc
-    const tileSheetOfCombatDummy = new Image();
-    tileSheetOfCombatDummy.addEventListener( 'load', itemLoaded , false );
-    tileSheetOfCombatDummy.src = "tiles/combat_dummy/BODY_animation.png";
+    //* слушатели событий
+    window.addEventListener( 'keydown', keyDownHandler );
+    window.addEventListener( 'keyup', keyUpHandler );
     
+    //*** application start
+	switchGameState( GAME_STATE_INIT );
+    //*** application loop    
+    function runGame() {
+        currentGameStateFunction();
 
-    //*** Load json
-    let requestURL = 'tiles/tileSheetOfMap.json';
-    let request = new XMLHttpRequest();
-    request.open( 'GET', requestURL );
-    request.responseType = 'json';
-    request.send();
-    
-    request.addEventListener( 'load', itemLoaded, false );
-    let loadCount = 0;
-    const itemsToLoad = 22;
-
-    function itemLoaded() { //page 545
-        loadCount++;
-        if ( loadCount >= itemsToLoad ) {
-            
-            tileSheetOfMap.removeEventListener( 'load', itemLoaded , false );
-            request.removeEventListener( 'load', itemLoaded, false );
-            //TODO добавить все removeEventListener
-            //*
-            //*
-            jsonObj = request.response; 
-            game.tileMaps[0] = jsonObj.layers[0].data;
-            game.tileMaps[1] = jsonObj.layers[1].data;
-            //console.log( game.tileMaps );
-            game.placesSpawnPlayer[0] = jsonObj.layers[2].objects[0];
-            //console.log( game.placeSpawnPlayer[0] );
-            game.placesSpawnObject[0] = jsonObj.layers[3].objects[0];
-            game.placesSpawnObject[1] = jsonObj.layers[3].objects[1];
-            game.placesSpawnObject[2] = jsonObj.layers[3].objects[2];
-            game.placesSpawnObject[3] = jsonObj.layers[3].objects[3];
-            //console.log(  game.placesSpawnObject );
-
-            game.placesSpawnStaticNpc[0] = jsonObj.layers[4].objects[0];
-            game.placesSpawnStaticNpc[1] = jsonObj.layers[4].objects[1];
-            game.placesSpawnStaticNpc[2] = jsonObj.layers[4].objects[2];
-            game.placesSpawnStaticNpc[3] = jsonObj.layers[4].objects[3];
-            //console.log(  game.placesSpawnNpc );
-
-            //console.log( jsonObj.layers.length );
-
-            game.init();
-        }
+        window.requestAnimationFrame( runGame );
     }
 
-    const game = new Game();
-    const frameRateCounter = new FrameRateCounter(1000);
-    const frameIndexCounter = new FrameRateCounter(100);
-
-
+    runGame();
 
 }
 
-                    /*
-                    if ( game.pressed.has( 'ArrowDown' ) && game.pressed.has( 'ArrowRight' ) ) {
-                        this.sourceDY = 128;
-                        this.dx = 1;
-                        this.dy = 1;
-                        break;
-                    }else
-                        if ( game.pressed.has( 'ArrowDown' ) && game.pressed.has( 'ArrowLeft' ) ) {
-                            this.sourceDY = 128;
-                            this.dx = -1;
-                            this.dy = 1;
-                            break;
-                        }else
-                            if ( game.pressed.has( 'ArrowUp' ) && game.pressed.has( 'ArrowLeft' ) ) {
-                                this.sourceDY = 0;
-                                this.dx = -1;
-                                this.dy = -1;
-                                break;
-                            }else
-                                if ( game.pressed.has( 'ArrowUp' ) && game.pressed.has( 'ArrowRight' ) ) {
-                                    this.sourceDY = 0;
-                                    this.dx = 1;
-                                    this.dy = -1;
-                                    break;
-                                }
-*/
