@@ -1059,7 +1059,7 @@ function canvasApp()  {
         //!spawns
         player = new HUMAN( tilesBody, costumeSwordman, weapons, 'dagger', 200, 200, true, true );
         //npc[0] = new HUMAN( tilesBody, 300, 200, false, true );
-        //enemy[0] = new HUMAN( tilesBody, costumeSwordman, weapons, 300, 300, false, true )
+        enemy[0] = new SKELETON( tilesBody, costumeSwordman, weapons, 'dagger', 400, 200, false, true );
         //head = new CLOTHES( costumeSwordman, 'head', 200, 200, true )
         console.log( player );
         console.log('create play field');
@@ -1105,7 +1105,7 @@ function canvasApp()  {
         player.update()
        // head.render()
        // npc[0].render()
-       // enemy[0].render()
+        enemy[0].render()
 		//!drawPlayer();
 		//!drawEnemy();
 		
