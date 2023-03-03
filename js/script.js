@@ -64,14 +64,16 @@ function canvasApp()  {
 	const yMax = mapRows * 32;
     //* booles
     //let isRun = false;
-    let isPressKey = false;
-    window.isPressKey = isPressKey;
+    //let isPressKey = false;
+    //window.isPressKey = isPressKey;
     //* key Presses
     const pressesKeys = new Set();
     window.pressesKeys = pressesKeys;
     //* objects
     let player = {};
-    let nonStaticNPC = [];
+    let enemy = [];
+    let npc = [];
+    let nonStaticNPC = [ enemy, npc ];
     let staticNPC = [];
     //* places Spawn
     let placesSpawnPlayer = [];
@@ -91,61 +93,76 @@ function canvasApp()  {
     };
     let tilesHead = {
         titleTiles: 'head',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesFeet = {
         titleTiles: 'feet',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesLegs = {
         titleTiles: 'legs',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesTorso = {
         titleTiles: 'torso',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesBracers = {
         titleTiles: 'bracers',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesShoulders = {
         titleTiles: 'shoulders',
+        type: 'clothes',
         walk: {},
         attack: {}
     };
     let tilesDagger = {
         titleTiles: 'dagger',
+        type: 'weapon',
         walk: {},
         attack: {}
     };
     let tilesShield = {
         titleTiles: 'shield',
+        type: 'weapon',
         walk: {},
         attack: {}
     };
     let tilesQuiver = {
         titleTiles: 'quiver',
+        type: 'weapon',
         walk: {},
         attack: {}
     };
     let tilesDummy = {
         titleTiles: 'dummy',
+        type: 'staticNPC',
         idle: {}
     };
     let tilesShieldSpear = {
         titleTiles: 'shield_spear',
+        type: 'staticNPC',
         idle: {}
     };
 
     //* costumes
-    const costumeSwordman = [ tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders ];
-    const weapons = [ tilesDagger, tilesShield, tilesQuiver ];
+    const namesCostumes = {
+        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'dagger' ]
+        //others
+    };
+    const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, tilesDagger, namesCostumes ];
+    //const weapons = [ tilesDagger, tilesShield, tilesQuiver ];
     const costumeStaticNPC = [ tilesDummy, tilesShieldSpear ];
 
     function switchGameState( newState ) {
@@ -233,16 +250,10 @@ function canvasApp()  {
                     return 5;
                 case 'shoulders':
                     return 6;
-                case 'quiver':
-                    return 7;
                 case 'belt':
-                    return 8;
-                case 'dagger':
-                    return 9;
-                case 'shield':
-                    return 10;
+                    return 7;
                 case 'hands':
-                    return 11;
+                    return 8;
                 }
         }
     function   getItemOfObject( type ) {
@@ -1022,9 +1033,9 @@ function canvasApp()  {
             //console.log(  placesSpawnNpc );
             //console.log( jsonObj.layers.length );
 
-            console.log( costumeSwordman );
-            console.log( weapons );
-            console.log( costumeStaticNPC );
+            //console.log( costumeSwordman );
+            //console.log( weapons );
+            //console.log( costumeStaticNPC );
 
             switchGameState( GAME_STATE_TITLE );
         }
@@ -1038,12 +1049,12 @@ function canvasApp()  {
             setTextStyleTitle();
             
 			ctx.fillText  ( "Medieval Simple Game with Tiled", 190, 70 );
-			ctx.fillText  ( "Press Space To Play", 300, 140 );
+			ctx.fillText  ( "Press Enter To Play", 300, 140 );
 
             screenStarted = true;
         }else{
 			//wait for space key click
-			if ( pressesKeys.has('Space') ) {
+			if ( pressesKeys.has('Enter') ) {
 				//console.log("space pressed");
 				switchGameState( GAME_STATE_NEW_GAME );
 				screenStarted = false;
@@ -1062,10 +1073,13 @@ function canvasApp()  {
 		
 		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
 	}
-
+    let head
     function createPlayStage() {
         //!spawns
         player = new HUMAN( tilesBody, costumeSwordman, 200, 200, true, true );
+        //npc[0] = new HUMAN( tilesBody, 300, 200, false, true );
+        //enemy[0] = new HUMAN( tilesBody, costumeSwordman, weapons, 300, 300, false, true )
+        //head = new CLOTHES( costumeSwordman, 'head', 200, 200, true )
         console.log( player );
         console.log('create play field');
     }
@@ -1108,7 +1122,9 @@ function canvasApp()  {
         drawFPSCounter();
         player.render();
         player.update()
-
+       // head.render()
+       // npc[0].render()
+       // enemy[0].render()
 		//!drawPlayer();
 		//!drawEnemy();
 		
@@ -1145,77 +1161,38 @@ function canvasApp()  {
     const frameIndexCounter = new FrameRateCounter(100);
     window.frameIndexCounter = frameIndexCounter;
     
-    //* keys handler
+    //* keys handlers
     function keyDownHandler( e ) {
         //console.log( e.code );
-
         switch ( e.code ) {
             case 'ArrowDown':
                 pressesKeys.add( e.code );
-                window.isPressKey = isPressKey
-
-                /*
-                for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object'  ) {
-                        game.player[i].moveMode = 'run';
-                    }
-                }*/
-                isPressKey = true;
+               // window.isPressKey = isPressKey
+                //isPressKey = true;
                 break;
             case 'ArrowUp':
-                /*
-                for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' ) {
-                        game.player[i].moveMode = 'run';
-                    }
-                }*/
-                isPressKey = true;
-                window.isPressKey = isPressKey
-
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
-            case 'ArrowLeft':/*
-                for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object'  ) {
-                        game.player[i].moveMode = 'run';
-                    }
-                }*/
-                isPressKey = true;
-                window.isPressKey = isPressKey
-
+            case 'ArrowLeft':
+               // isPressKey = true;
+               // window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
-            case 'ArrowRight':/*
-                for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object'  ) {
-                        game.player[i].moveMode = 'run';
-                    }
-                }*/
-                isPressKey = true;
-                window.isPressKey = isPressKey
-
+            case 'ArrowRight':
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
-            case 'Space':/*
-                for ( let i = 1; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object'  ) {
-                        game.player[i].moveMode = 'run';
-
-                    }
-                    if ( game.player[i].type === 'attack' ) {
-                        game.player[i].visibility = true;
-                        //console.log( Player.isAttack );
-                    }else
-                        if ( game.player[i].type === 'walk' ) {
-                            game.player[i].visibility = false;
-                        }
-
-                }*/
-                    //game.player[1].visibility = true;
-                    //game.player[2].visibility = false;
-
-                isPressKey = true;
-                window.isPressKey = isPressKey
+            case 'Space':
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
+                pressesKeys.add( e.code );
+                break;
+            case 'Enter':
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
             }
@@ -1223,66 +1200,31 @@ function canvasApp()  {
     function keyUpHandler( e ) {
         switch ( e.code ) {
             case 'ArrowDown':
-                pressesKeys.delete( e.code );/*
-                if ( game.pressedKeys.size === 0 ) {
-                    game.isPressKey = false;
-                    for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object'  ) {
-                            game.player[i].moveMode = 'idle';
-                        }
-                    }
-                    }*/
+                pressesKeys.delete( e.code );
                 break;
             case 'ArrowUp':
-                pressesKeys.delete( e.code );/*
-                if ( game.pressedKeys.size === 0 ) {
-                    game.isPressKey = false;
-                    for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object') {
-                            game.player[i].moveMode = 'idle';
-                        }
-                    }
-                }*/
+                pressesKeys.delete( e.code );
                 break;
             case 'ArrowLeft':
-                pressesKeys.delete( e.code );/*
-                if ( game.pressedKeys.size === 0 ) {
-                    game.isPressKey = false;
-                    for ( let i = 0; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object' ) {
-                            game.player[i].moveMode = 'idle';
-                        }
-                    }
-                }*/
+                pressesKeys.delete( e.code );
                 break;
             case 'ArrowRight':
-                pressesKeys.delete( e.code );/*
-                if ( game.pressedKeys.size === 0 ) {
-                    game.isPressKey = false;
-                    for ( let i = 0; i < game.player.length; i++ ) {
-                    if ( typeof game.player[i] === 'object' ) {
-                        game.player[i].moveMode = 'idle';
-                    }
-                }
-            }*/
+                pressesKeys.delete( e.code );
                 break;
             case 'Space':
                 pressesKeys.delete( e.code );
-                    isPressKey = false;/*
-                    for ( let i = 1; i < game.player.length; i++ ) {
-                        if ( typeof game.player[i] === 'object'  ) {
-                            game.player[i].moveMode = 'idle';
-                        }
-                        if ( game.player[i].type === 'attack' ) {
-                            game.player[i].visibility = false;
-                        }else
-                            if ( game.player[i].type === 'walk' ) {
-                                game.player[i].visibility = true;
-                            }
-                    }*/
+                //isPressKey = false;
+                break;
+            case 'Space':
+                pressesKeys.delete( e.code );
+                //isPressKey = false;
+                break;
+            case 'Enter':
+                pressesKeys.delete( e.code );
+                //isPressKey = false;
                 break;
     
-            }
+        }
     }
 
     //* слушатели событий
