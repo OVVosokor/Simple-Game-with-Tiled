@@ -158,11 +158,12 @@ function canvasApp()  {
 
     //* costumes
     const namesCostumes = {
-        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'dagger' ]
+        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders' ],
+        weapons: [ 'dagger', 'shield', 'quiver', 'spear', 'bow' ]
         //others
     };
-    const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, tilesDagger, namesCostumes ];
-    //const weapons = [ tilesDagger, tilesShield, tilesQuiver ];
+    const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, namesCostumes ];
+    const weapons = [ 'weapons', tilesDagger, tilesShield, tilesQuiver, namesCostumes ];
     const costumeStaticNPC = [ tilesDummy, tilesShieldSpear ];
 
     function switchGameState( newState ) {
@@ -235,26 +236,6 @@ function canvasApp()  {
             this.spawnObject( costumes_objects );
             this.spawnNpc( costumes_staticNpc );
 
-        }
-    function   getItemOfCostume( type ) {
-            switch ( type ) {
-                case 'head':
-                    return 1;
-                case 'feet':
-                    return 2;
-                case 'legs':
-                    return 3;
-                case 'torso':
-                    return 4;
-                case 'bracers':
-                    return 5;
-                case 'shoulders':
-                    return 6;
-                case 'belt':
-                    return 7;
-                case 'hands':
-                    return 8;
-                }
         }
     function   getItemOfObject( type ) {
             switch ( type ) {
@@ -926,14 +907,14 @@ function canvasApp()  {
         tileSheetOfTORSO_leather_armor_bracers_attack.src = "tiles/slash/TORSO_leather_armor_bracers.png";
         //add propeties
         tilesBracers.attack.tileSheet = tileSheetOfTORSO_leather_armor_bracers_attack;
-        tilesBracers.attack.animFrames = 9;
+        tilesBracers.attack.animFrames = 6;
         //*shoulders attack
         const tileSheetOfTORSO_leather_armor_shoulders_attack = new Image();
         tileSheetOfTORSO_leather_armor_shoulders_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_shoulders_attack.src = "tiles/slash/TORSO_leather_armor_shoulders.png";
         //add propeties
         tilesShoulders.attack.tileSheet = tileSheetOfTORSO_leather_armor_shoulders_attack;
-        tilesShoulders.attack.animFrames = 9;
+        tilesShoulders.attack.animFrames = 6;
 
         //************** WEAPON
         //*dagger
@@ -1073,10 +1054,10 @@ function canvasApp()  {
 		
 		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
 	}
-    let head
+
     function createPlayStage() {
         //!spawns
-        player = new HUMAN( tilesBody, costumeSwordman, 200, 200, true, true );
+        player = new HUMAN( tilesBody, costumeSwordman, weapons, 'dagger', 200, 200, true, true );
         //npc[0] = new HUMAN( tilesBody, 300, 200, false, true );
         //enemy[0] = new HUMAN( tilesBody, costumeSwordman, weapons, 300, 300, false, true )
         //head = new CLOTHES( costumeSwordman, 'head', 200, 200, true )

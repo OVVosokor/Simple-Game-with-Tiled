@@ -28,6 +28,7 @@ class FrameRateCounter {
         //delete dateTemp;
     }
 }
+
 //********* NON STATIC 
 class NONSTATIC {
     constructor( x, y ) {
@@ -76,7 +77,7 @@ class NONSTATIC {
         //console.log( animationFrames );
         let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.tileObject.animFrames ) * 64;
         let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.tileObject.animFrames ) * 64;
-        //console.log( typeof this.tileSheet );
+       // console.log( typeof this.tileSheet );
         ctx.drawImage( this.tileObject.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width , this.height );
         
         //console.log( sourceX, sourceY );
@@ -101,6 +102,7 @@ class NONSTATIC {
     }
     
 }
+
 class HOMO_SAPIENS extends NONSTATIC {
     constructor(  x, y ) { //tileSheet, animFrames, x, y, delay, visibility
         super();
@@ -140,8 +142,9 @@ class HOMO_SAPIENS extends NONSTATIC {
         super.update();
     }
 }
+
 class HUMAN extends HOMO_SAPIENS {
-    constructor( bodyes, costumes, x, y, isPlayer, visible ) {
+    constructor( bodyes, costumes, weapons, typeOfWeapon, x, y, isPlayer, visible ) {
         super();
         //*coords
         this.x = x;
@@ -155,10 +158,6 @@ class HUMAN extends HOMO_SAPIENS {
         this.frameIndex = 0;
         this.bodyes = [ bodyes ];
         this.costumes = costumes;
-        //*get list of name costumes
-        this.nameCostumes = this.costumes[ this.costumes.length - 1 ][ this.costumes[0] ];
-
-        //this.weapons = weapons;
         this.tileObject = {};
         this.tilesToRenderWalk = [];
         this.tilesToRenderAttack = [];
@@ -176,29 +175,23 @@ class HUMAN extends HOMO_SAPIENS {
         this.visible = visible;
         //*life
         this.life = 100;
+        //*get list of name costumes
+        this.nameCostumes = this.costumes[ this.costumes.length - 1 ][ this.costumes[0] ];
+        //*create weapon
+        this.weapons = weapons;
+        this.weapon = new WEAPON( this.weapons, typeOfWeapon, this.x, this.y, true );
         //*create Clothes object
-        this.createClothesObject();
-        //console.log( this.tempCostume );
-        //console.log( this.tiles);
-        //*load tiles
-        this.loadTiles();
-        //console.log( this.body, this.costumes, this.x, this.y, this.isPlayer, this.visible );
-    }
-
-    //*create Clothes object
-    createClothesObject() {
         for ( let i = 0; i < this.nameCostumes.length; i++ ) {
             this.tempCostume[i] = new CLOTHES( this.costumes, this.nameCostumes[i], this.x, this.y, true );
         }
+        //*add all objects: costumes, weapon
         for ( let i = 0; i < this.tempCostume.length; i++ ) {
             this.currentCostume.push( this.tempCostume[i] )
         }
         this.currentCostume = this.bodyes.concat( this.currentCostume ) ;
+        this.currentCostume.push( this.weapon );
         //console.log( this.currentCostume );
-    }
-
-    //*load tiles
-    loadTiles() {
+        //*****************load tiles
         //*load walk tiles
         for ( let i = 0; i < this.currentCostume.length; i++ ) {
             if ( i === 0 ) {
@@ -209,18 +202,25 @@ class HUMAN extends HOMO_SAPIENS {
                 //console.log( this.currentCostume[i] );
             }
         }
-        //console.log( this.tilesToRenderWalk );
         //*load attack tiles
         for ( let i = 0; i < this.currentCostume.length; i++ ) {
             if ( i === 0 ) {
                 this.tilesToRenderAttack.push( this.currentCostume[i].human.attack );
-                this.currentCostume[i].human.walk.visible = this.visible;
+                this.currentCostume[i].human.attack.visible = this.visible;
             }else{
                 this.tilesToRenderAttack.push( this.currentCostume[i].tilesToRenderAttack );
-                //console.log( this.currentCostume[i].tilesToRenderAttack );
+                //console.log( this.currentCostume );
+                //console.log( this.currentCostume[i].tilesToRenderAttack.tileSheet );
                 // console.log( this.tilesToRenderAttack );
             }
         }
+        //console.log( this.tilesToRenderWalk );
+       // console.log( this.tilesToRenderAttack );
+    }
+
+
+    //*load tiles
+    loadTiles() {
     }
 
     //*render
@@ -228,7 +228,8 @@ class HUMAN extends HOMO_SAPIENS {
         if ( this.visible ) {
             if ( !this.isAttack ) {
                 for ( this.tileObject of this.tilesToRenderWalk ) {
-                    if ( typeof this.tileObject === 'object' && this.tileObject.visible ) {
+                    //console.log( this.tileObject.tileSheet  );
+                    if ( typeof this.tileObject === 'object' && this.tileObject.hasOwnProperty( 'tileSheet' ) && this.tileObject.visible ) {
                         super.draw();
                     }
                 }
@@ -247,7 +248,7 @@ class HUMAN extends HOMO_SAPIENS {
         console.log('human attack');
         this.isAttack = true;
     }
-    
+
     //*check keys
     update() {
         if ( this.isPlayer ) {
@@ -306,6 +307,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
 }
+
 class CLOTHES {
     constructor( costumes, typeOfClothes, x, y, visible ) {
         this.frameIndex = 0;
@@ -321,14 +323,13 @@ class CLOTHES {
         this.isAnimate = false;
         this.visible = visible;
         this.indexClothes = this.getItemOfCostume( typeOfClothes );
-        this.costumes = costumes;
+        this.tiles = costumes;
         this.type = typeOfClothes;
         this.tileObject = {};
         //*load tile
         //this.tileObject = this.costumes[this.indexClothes];
         this.tilesToRenderWalk = {};
         this.tilesToRenderAttack = {};
-        this.tiles = this.costumes;
 
         //console.log( this.tiles );
 
@@ -343,6 +344,8 @@ class CLOTHES {
         for ( let i = 0; i < this.tiles.length; i++ ) {
             if ( i === this.indexClothes ) {
                 this.tilesToRenderAttack = this.tiles[i].attack;
+                this.tilesToRenderAttack.visible = this.visible;
+                //console.log( this.tilesToRenderWalk );
             }
         }
 
@@ -367,6 +370,128 @@ class CLOTHES {
                 return 7;
             case 'hands':
                 return 8;
+        }
+    }
+    //*draw clothes
+    draw() {
+        //console.log( this.isAnimate );
+        let animationFrames = [];
+        frameIndexCounter.delay = this.delay;
+
+        for ( let i = 0; i < this.tileObject.animFrames; i++ ) {
+            animationFrames.push( i );
+        }
+        console.log( this.tileObject );
+        //console.log( animationFrames );
+        let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.tileObject.animFrames ) * 64;
+        let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.tileObject.animFrames ) * 64;
+        //console.log( typeof this.tileSheet );
+        ctx.drawImage( this.tileObject.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width , this.height );
+        
+        //console.log( sourceX, sourceY );
+        
+        if ( this.isAnimate ) { //this.moveMode === 'run'
+            //console.log( this.moveMode );
+            this.frameIndex = frameIndexCounter.frameIndex;
+            //console.log( this.frameIndex );
+            //console.log( frameIndexCounter );
+            if ( this.frameIndex === animationFrames.length ) {
+                this.frameIndex = 0;
+                frameIndexCounter.frameIndex = 0;
+            }
+        }else{
+            this.frameIndex = 0;
+        }
+    }
+
+    //*render
+    render() {
+        if ( this.visible ) {
+            if ( !this.isAttack ) {
+                //for ( this.tileObject of this.tilesToRenderWalk ) {
+                    if ( typeof this.tileObject === 'object' ) {
+                        this.draw();
+                    }
+               // }
+            }else{
+              // for ( this.tileObject of this.tilesToRenderAttack ) {
+                    if ( typeof this.tileObject === 'object' ) {
+                        this.draw();
+                    }
+               // }
+            }
+        }
+
+    }
+    //*check keys
+    update() {
+        this.x = this.x + this.dx;
+        this.y = this.y + this.dy;
+    }
+
+}
+
+class WEAPON {
+    constructor( weapons, typeOfWeapon, x, y, visible ) {
+        this.frameIndex = 0;
+        this.x = x;
+        this.y = y;
+        this.width = 64;
+        this.height = 64;
+        this.dx = 0;
+        this.dy = 0;
+        this.delay = 100;
+        this.sourceDY = 128; //128
+        this.moveMode = 'idle'; //run
+        this.isAnimate = false;
+        this.visible = visible;
+        this.indexWeapon = this.getItemOfWeapon( typeOfWeapon );
+        this.tiles = weapons;
+       //console.log( this.indexWeapon, this.tiles );
+        this.type = typeOfWeapon;
+        this.tileObject = {};
+        //*load tile
+        //this.tileObject = this.costumes[this.indexClothes];
+        this.tilesToRenderWalk = {};
+        this.tilesToRenderAttack = {};
+        //*life
+        this.life = 100;
+        //console.log( this.tilesToRenderWalk );
+        //console.log( this.tilesToRenderAttack );
+        //console.log( this.tiles );
+        //console.log(  this.tiles[1].walk  );
+
+        for ( let i = 0; i < this.tiles.length; i++ ) {
+            if ( i === this.indexWeapon ) {
+                this.tilesToRenderWalk = this.tiles[i].walk;
+                this.tilesToRenderWalk.visible = this.visible;
+                //console.log( this.tilesToRenderWalk );
+            }
+        }
+        //load attack tiles
+        for ( let i = 0; i < this.tiles.length; i++ ) {
+            if ( i === this.indexWeapon ) {
+                this.tilesToRenderAttack = this.tiles[i].attack;
+                this.tilesToRenderAttack.visible = this.visible;
+                //console.log( this.tilesToRenderAttack );
+            }
+        }
+
+        //console.log( this.tileObject );
+    }
+    //*get index of clothes
+    getItemOfWeapon( type ) {
+        switch ( type ) {
+            case 'dagger':
+                return 1;
+            case 'shield':
+                return 2;
+            case 'quiver':
+                return 3;
+            case 'spear':
+                return 4;
+            case 'bow':
+                return 5;
         }
     }
     //*draw clothes
