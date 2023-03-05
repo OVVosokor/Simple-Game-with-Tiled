@@ -71,9 +71,9 @@ function canvasApp()  {
     window.pressesKeys = pressesKeys;
     //* objects
     let player = {};
-    let enemy = [];
+    let enemys = [];
     let npc = [];
-    let nonStaticNPC = [ enemy, npc ];
+    let nonStaticNPC = [ enemys, npc ];
     let staticNPC = [];
     //* places Spawn
     let placesSpawnPlayer = [];
@@ -147,12 +147,12 @@ function canvasApp()  {
     };
     let tilesDummy = {
         titleTiles: 'dummy',
-        type: 'staticNPC',
+        type: 'interacting',
         idle: {}
     };
     let tilesShieldSpear = {
         titleTiles: 'shield_spear',
-        type: 'staticNPC',
+        type: 'putOn',
         idle: {}
     };
 
@@ -164,169 +164,68 @@ function canvasApp()  {
     };
     const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, namesCostumes ];
     const weapons = [ 'weapons', tilesDagger, tilesShield, tilesQuiver, namesCostumes ];
-    const costumeStaticNPC = [ tilesDummy, tilesShieldSpear ];
+    //const costumeInteractingNPC = [ tilesDummy ];
+    //const costumesPutOnNPC = [ tilesShieldSpear ];
+    const costumesStaticNPC = {
+        interacting: [ tilesDummy ],
+        putOn: [ tilesShieldSpear ]
+    }
+    const costumeBody = [ 'costume Body' ];
 
     function switchGameState( newState ) {
 
-    currentGameState = newState;
-
-    switch ( currentGameState ) {
-    
-        case GAME_STATE_INIT:
-            currentGameStateFunction = gameStateInit;
-            break;
-        case GAME_STATE_WAIT_FOR_LOAD:
-            currentGameStateFunction = gameStateWaitForLoad;
-            break;
-        case GAME_STATE_TITLE:
-            currentGameStateFunction = gameStateTitle;
-            break;
-        case GAME_STATE_NEW_GAME:
-             currentGameStateFunction = gameStateNewGame;
-             break;
-        case GAME_STATE_RENDER_PLAY_SCREEN:
-             currentGameStateFunction = gameStateRenderPlayScreen;
-             break;/*
-        case GAME_STATE_ANIMATE_PLAYER:
-             currentGameStateFunction=gameStateAnimatePlayer;
-             break;
-        case GAME_STATE_EVALUATE_PLAYER_MOVE:
-             currentGameStateFunction=gameStateEvaluatePlayerMove;
-             break;
-        case GAME_STATE_ENEMY_MOVE:
-             currentGameStateFunction=gameStateEnemyMove;
-             break;
-        case GAME_STATE_ANIMATE_ENEMY:
-             currentGameStateFunction=gameStateAnimateEnemy;
-             break;
-        case GAME_STATE_EVALUATE_ENEMY_MOVE:
-             currentGameStateFunction=gameStateEvaluateEnemyMove;
-             break;
-        case GAME_STATE_EVALUATE_OUTCOME:
-            currentGameStateFunction=gameStateEvaluateOutcome;
-            break;
-        case GAME_STATE_ANIMATE_EXPLODE:
-             currentGameStateFunction=gameStateAnimateExplode;
-             break;
-        case GAME_STATE_CHECK_FOR_GAME_OVER:
-            currentGameStateFunction=gameStateCheckForGameOver;
-            break;
-        case GAME_STATE_PLAYER_WIN:
-             currentGameStateFunction=gameStatePlayerWin;
-             break;
-        case GAME_STATE_PLAYER_LOSE:
-             currentGameStateFunction=gameStatePlayerLose;
-             break;*/
-    
-    }
-
-}
-
-
+        currentGameState = newState;
+        switch ( currentGameState ) {
         
-    function init() {
-            canvas.width = this.mapCols * 32;
-            canvas.height = this.mapRows * 32;
-            this.isRun = true;
-            const spawnPlayerX = placesSpawnPlayer[0].x;
-            const spawnPlayerY = placesSpawnPlayer[0].y;
-
-            this.spawnPlayer( costume, spawnPlayerX, spawnPlayerY );
-            //console.log( this.costume );
-            this.spawnObject( costumes_objects );
-            this.spawnNpc( costumes_staticNpc );
-
-        }
-    function   getItemOfObject( type ) {
-            switch ( type ) {
-                case 'shield_spear':
-                    return 0;
-                //case 'feet':
-                //    return 2;
-                    /*
-                case 'legs':
-                    return 3;
-                case 'torso':
-                    return 4;
-                case 'bracers':
-                    return 5;
-                case 'shoulders':
-                    return 6;
-                case 'quiver':
-                    return 7;
-                case 'belt':
-                    return 8;
-                case 'dagger':
-                    return 9;
-                case 'shield':
-                    return 10;
-                case 'hands':
-                    return 11;
-                    */
-                }
-                
-        }
-    function  getItemOfNpc( type ) {
-            switch ( type ) {
-                case 'combat_dummy':
-                    return 0;
-                //case 'feet':
-                //    return 2;
-                    /*
-                case 'legs':
-                    return 3;
-                case 'torso':
-                    return 4;
-                case 'bracers':
-                    return 5;
-                case 'shoulders':
-                    return 6;
-                case 'quiver':
-                    return 7;
-                case 'belt':
-                    return 8;
-                case 'dagger':
-                    return 9;
-                case 'shield':
-                    return 10;
-                case 'hands':
-                    return 11;
-                    */
-                }
-                
-        }
-
-
+            case GAME_STATE_INIT:
+                currentGameStateFunction = gameStateInit;
+                break;
+            case GAME_STATE_WAIT_FOR_LOAD:
+                currentGameStateFunction = gameStateWaitForLoad;
+                break;
+            case GAME_STATE_TITLE:
+                currentGameStateFunction = gameStateTitle;
+                break;
+            case GAME_STATE_NEW_GAME:
+                currentGameStateFunction = gameStateNewGame;
+                break;
+            case GAME_STATE_RENDER_PLAY_SCREEN:
+                currentGameStateFunction = gameStateRenderPlayScreen;
+                break;/*
+            case GAME_STATE_ANIMATE_PLAYER:
+                currentGameStateFunction=gameStateAnimatePlayer;
+                break;
+            case GAME_STATE_EVALUATE_PLAYER_MOVE:
+                currentGameStateFunction=gameStateEvaluatePlayerMove;
+                break;
+            case GAME_STATE_ENEMY_MOVE:
+                currentGameStateFunction=gameStateEnemyMove;
+                break;
+            case GAME_STATE_ANIMATE_ENEMY:
+                currentGameStateFunction=gameStateAnimateEnemy;
+                break;
+            case GAME_STATE_EVALUATE_ENEMY_MOVE:
+                currentGameStateFunction=gameStateEvaluateEnemyMove;
+                break;
+            case GAME_STATE_EVALUATE_OUTCOME:
+                currentGameStateFunction=gameStateEvaluateOutcome;
+                break;
+            case GAME_STATE_ANIMATE_EXPLODE:
+                currentGameStateFunction=gameStateAnimateExplode;
+                break;
+            case GAME_STATE_CHECK_FOR_GAME_OVER:
+                currentGameStateFunction=gameStateCheckForGameOver;
+                break;
+            case GAME_STATE_PLAYER_WIN:
+                currentGameStateFunction=gameStatePlayerWin;
+                break;
+            case GAME_STATE_PLAYER_LOSE:
+                currentGameStateFunction=gameStatePlayerLose;
+                break;*/
         
-    function   spawnPlayer( costumes, x, y ) {
-        player[0] = new Player( x, y );
-        //Body
-        player[1] = new Body( costumes, 'attack', x, y, false );
-        player[2] = new Body( costumes, 'walk', x, y, true );
-        //costume Walk
-        player[3] = new Clothes( costumes, 'walk', 'head', x, y, true );
-        player[4] = new Clothes( costumes, 'walk', 'feet', x, y, true );
-        player[5] = new Clothes( costumes, 'walk', 'legs', x, y, true );
-        player[6] = new Clothes( costumes, 'walk', 'torso', x, y, true );
-        player[7] = new Clothes( costumes, 'walk', 'bracers', x, y, true );
-        player[8] = new Clothes( costumes, 'walk', 'shoulders', x, y, true );
-        //costume Attack
-        player[9] = new Clothes( costumes, 'attack', 'head', x, y, false );
-        player[10] = new Clothes( costumes, 'attack', 'feet', x, y, false );
-        player[11] = new Clothes( costumes, 'attack', 'legs', x, y, false );
-        player[12] = new Clothes( costumes, 'attack', 'torso', x, y, false );
-        player[13] = new Clothes( costumes, 'attack', 'bracers', x, y, false );
-        player[14] = new Clothes( costumes, 'attack', 'shoulders', x, y, false );
-        //Weapon
-        player[15] = new Weapon( costumes, 'attack', 'dagger', x, y, false );
-        //console.log( player );
-    }
-    function    spawnObject( costumes ) {
-        for ( let i = 0; i < placesSpawnNonStaticNPC.length; i++ ) {
-            nonStaticNPC[i] = new ObjectOnMap( costumes, 'shield_spear', placesSpawnNonStaticNPC[i].x, this.placesSpawnObject[i].y, true );
         }
-        //console.log(this.itemsOfObjects);
     }
+
     function  spawnNpc( costumes ) {
         for ( let i = 0; i < placesSpawnStaticNPC.length; i++ ) {
             staticNPC[i] = new StaticNpc( costumes, 'combat_dummy', placesSpawnStaticNPC[i].x, this.placesSpawnStaticNpc[i].y, true );
@@ -379,19 +278,8 @@ function canvasApp()  {
             }
         }
     }
-/*
-    function  drawScreen() {
-        frameRateCounter.countFrames();
-        frameIndexCounter.countFrames();
 
-        updatePlayer();
-        updateObject();
-        updateNpc();
-        renderMap( 0 );
-        renderObjects();
-        renderNpc();
-        renderPlayer();
-    }*/
+/*
     class Npc {
         constructor( x, y ) {
             this.frameIndex = 0;
@@ -801,7 +689,7 @@ function canvasApp()  {
     class NonStaticNpc extends Npc {
 
     }
-
+*/
     function gameStateWaitForLoad() {
 		//do nothing while loading events occur
 		//console.log( "doing nothing..." );
@@ -1055,14 +943,62 @@ function canvasApp()  {
 		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
 	}
 
+
     function createPlayStage() {
-        //!spawns
-        player = new HUMAN( tilesBody, costumeSwordman, weapons, 'dagger', 200, 200, true, true );
-        //npc[0] = new HUMAN( tilesBody, 300, 200, false, true );
-        enemy[0] = new SKELETON( tilesBody, costumeSwordman, weapons, 'dagger', 400, 200, false, true );
-        //head = new CLOTHES( costumeSwordman, 'head', 200, 200, true )
+
+        const pointSpawnPlayer = {
+            x: placesSpawnPlayer[0].x,
+            y: placesSpawnPlayer[0].y
+        }
+        
+
+        //*spawns
+        player = new HUMAN( tilesBody, costumeSwordman, weapons, 'dagger', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); 
         console.log( player );
+
+        const pointsSpawnNPC = getPointsSpawnNPC();
+        //console.log(  pointsSpawnNPC);
+        const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
+
+        for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
+            enemys[i] = new SKELETON( tilesBody, costumeSwordman, weapons, 'dagger', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
+        }
+
+        //enemys[4] = new SKELETON( tilesBody, costumeBody, weapons, 'dagger', 200, 300, false, true );
+        console.log( enemys );
+       // console.log( costumesStaticNPC.putOn[0] );
+        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], 200, 100, true );
+        console.log( staticNPC );
+
+
         console.log('create play field');
+    }
+
+    function getPointsSpawnNPC() {
+        console.log( placesSpawnStaticNPC, placesSpawnNonStaticNPC );
+        let pointsSpawnStaticNPC = [];
+        let pointsSpawnNonStaticNPC = [];
+        //*get points Non Static
+        for ( let i = 0; i < placesSpawnNonStaticNPC.length; i++ ) {
+            pointsSpawnNonStaticNPC.push( {
+                x: placesSpawnNonStaticNPC[i].x,
+                y: placesSpawnNonStaticNPC[i].y
+            } )
+        }
+        //*get points Static
+        for ( let i = 0; i < placesSpawnStaticNPC.length; i++ ) {
+            pointsSpawnStaticNPC.push( {
+                x: placesSpawnStaticNPC[i].x,
+                y: placesSpawnStaticNPC[i].y
+            } )
+        }
+        let result = {
+            pointsSpawnStaticNPC: pointsSpawnStaticNPC,
+            pointsSpawnNonStaticNPC: placesSpawnNonStaticNPC
+        }
+        //console.log( pointsSpawnNonStaticNPC, pointsSpawnStaticNPC );
+        //console.log(result);
+        return result;
     }
 
     function gameStateRenderPlayScreen() {
@@ -1102,14 +1038,22 @@ function canvasApp()  {
 		drawPlayField(0);
         drawFPSCounter();
         player.render();
-        player.update()
-       // head.render()
-       // npc[0].render()
-        enemy[0].render()
+        player.update();
+
+        renderEnemys();
+
+        staticNPC[0].render();
+        //staticNPC[0].update();
 		//!drawPlayer();
 		//!drawEnemy();
 		
 	}
+
+    function renderEnemys() {
+        for (const enemy of enemys ) {
+            enemy.render();
+        }
+    }
 
     function drawFPSCounter() {
         ctx.fillStyle = 'black';
@@ -1176,6 +1120,12 @@ function canvasApp()  {
                 //window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
+            case 'KeyE':
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
+                pressesKeys.add( e.code );
+                break;
+    
             }
     }
     function keyUpHandler( e ) {
@@ -1204,7 +1154,11 @@ function canvasApp()  {
                 pressesKeys.delete( e.code );
                 //isPressKey = false;
                 break;
-    
+            case 'KeyE':
+                //isPressKey = true;
+                //window.isPressKey = isPressKey
+                pressesKeys.delete( e.code );
+                break;
         }
     }
 
