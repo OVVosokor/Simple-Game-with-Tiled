@@ -1,3 +1,5 @@
+//const { Matter } = require("./matter");
+
 window.addEventListener("load", eventWindowLoaded, false);
 
 function eventWindowLoaded () {
@@ -17,6 +19,26 @@ function canvasApp()  {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
     window.ctx = ctx;
+    //* Matter module aliases
+    let Engine = Matter.Engine,
+        Render = Matter.Render,
+        Runner = Matter.Runner,
+        Bodies = Matter.Bodies,
+        Body = Matter.Body,
+        Composite = Matter.Composite,
+        Collision = Matter.Collision,
+        Detector = Matter.Detector,
+        Query = Matter.Query;
+    
+    window.Engine = Engine;
+    window.Bodies = Bodies;
+    window.Body = Body;
+    window.Collision = Collision;
+    window.Composite = Composite;
+    window.Query = Query;
+
+    //* create an engine
+    let engine = Engine.create();
     //const canvasUI = document.getElementById('myCanvas_ui');
     //const ctxUI = canvasUI.getContext('2d');
 
@@ -46,13 +68,26 @@ function canvasApp()  {
 
 	//* loading
     let loadCount = 0;
-    const itemsToLoad = 23;
-    let requestURL; 
-    let request; 
+    const itemsToLoad = 24;
+    let requestURL_map; 
+    let request_map; 
+    let requestURL_tiles; 
+    let request_tiles; 
+    let listOfLayers = [];
+    //let layerObjects = [];
+    let layers = {
+        name: 'layers',
+        tileMaps: [],
+        layerPlayer: [],
+        layerObject: [],
+        layerNpc: []
+    };
+    //window.layers = layers;
     //* screens
     let screenStarted = false;
     //* playfield
     let tileMaps = [];
+    let coordsTiles = [];
     let tileSheetOfMap = '';
     const mapIndexOffset = -1;
     const mapRows = 20;
@@ -63,6 +98,7 @@ function canvasApp()  {
 	const yMin = 0;
 	const yMax = mapRows * 32;
     //* booles
+    let isGetCoordsTiles = false;
     //let isRun = false;
     //let isPressKey = false;
     //window.isPressKey = isPressKey;
@@ -79,6 +115,19 @@ function canvasApp()  {
     let placesSpawnPlayer = [];
     let placesSpawnNonStaticNPC = [];
     let placesSpawnStaticNPC = [];
+    //* walls
+    //let walls = [];
+    //* tiles
+    let tiles = [];
+    //* triggers
+    //let triggers = [];
+    //*collision object
+    /*
+    const collision = {
+        walls: walls,
+        tiles: tiles,
+        triggers: triggers
+    }*/
     //* tiles objects
     let tilesBody = {
         titleTiles: 'body',
@@ -226,470 +275,7 @@ function canvasApp()  {
         }
     }
 
-    function  spawnNpc( costumes ) {
-        for ( let i = 0; i < placesSpawnStaticNPC.length; i++ ) {
-            staticNPC[i] = new StaticNpc( costumes, 'combat_dummy', placesSpawnStaticNPC[i].x, this.placesSpawnStaticNpc[i].y, true );
-        }
-        //console.log( costumes );
-    }
 
-    function    renderPlayer() {
-        for ( let i = 1; i < player.length; i++ ) {
-            if ( typeof player[i] === 'object' ) {
-                player[i].render();
-            }
-        }
-    }
-    function   renderObjects() {
-        for ( let i = 0; i < nonStaticNPC.length; i++ ) {
-            if ( typeof nonStaticNPC[i] === 'object' ) {
-                nonStaticNPC[i].render();
-            }
-        }
-    }
-    function   renderNpc() {
-        for ( let i = 0; i < staticNPC.length; i++ ) {
-            if ( typeof staticNPC[i] === 'object' ) {
-                staticNPC[i].render();
-            }
-        }
-    }
-    function   updatePlayer() {
-        for ( let i = 0; i < player.length; i++ ) {
-            if ( typeof player[i] === 'object' ) {
-                player[i].update();
-            }
-        }
-
-    }
-
-    function  updateObject() {
-        for ( let i = 0; i < nonStaticNPC.length; i++ ) {
-            if ( typeof nonStaticNPC[i] === 'object' ) {
-                nonStaticNPC[i].update();
-            }
-        }
-    }
-    
-    function   updateNpc() {
-        for ( let i = 0; i < staticNPC.length; i++ ) {
-            if ( typeof staticNPC[i] === 'object' ) {
-                staticNPC[i].update();
-            }
-        }
-    }
-
-/*
-    class Npc {
-        constructor( x, y ) {
-            this.frameIndex = 0;
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            this.dx = 0;
-            this.dy = 0;
-            this.delay = 100;
-            this.sourceDY = 0; //128
-            this.moveMode = 'run'; //run
-            this.isAnimate = true;
-        }
-
-        boundingBoxCollide( object1, object2 ) {
-            //console.log( object1, object2 );
-            var left1 = object1.x;
-            var left2 = object2.x;
-            var right1 = object1.x + object1.width;
-            var right2 = object2.x + object2.width;
-            var top1 = object1.y;
-            var top2 = object2.y;
-            var bottom1 = object1.y + object1.height;
-            var bottom2 = object2.y + object2.height;
-            
-            if (bottom1 < top2) return( false );
-            if (top1 > bottom2) return( false );
-            
-            if (right1 < left2) return( false );
-            if (left1 > right2) return( false );
-            
-            return( true );
-        }
-
-        render() {
-            let animationFrames = [];
-            frameIndexCounter.delay = this.delay;
-
-            for ( let i = 0; i < this.animFrames; i++ ) {
-                animationFrames.push( i );
-            }
-            //console.log( animationFrames );
-            let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.animFrames ) * 64;
-            let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.animFrames ) * 64;
-            //console.log( typeof this.tileSheet );
-            ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width , this.height );
-
-            if ( this.moveMode === 'run' ) { //'run' this.moveMode === moveMode
-                //console.log( this.isAnimate , moveMode );
-                this.frameIndex = frameIndexCounter.frameIndex;
-                //console.log( this.frameIndex );
-                if ( this.frameIndex === animationFrames.length ) {
-                    this.frameIndex = 0;
-                    frameIndexCounter.frameIndex = 0;
-                }
-            }else{
-                this.frameIndex = 0;
-            }
-        }
-
-    }
-    class Player extends Npc {
-        static isAttack = false;
-        constructor(  x, y ) { //tileSheet, animFrames, x, y, delay, visibility
-            super();
-            this.frameIndex = 0;
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            this.dx = 0;
-            this.dy = 0;
-            this.delay = 100//delay animation;
-           // this.direction = 'down';
-            this.sourceDY = 128; 
-            this.moveMode = 'idle';
-            this.name = '';
-
-        }
-
-        boundingStaticNpcCollide() {
-            for ( let i = 0; i < game.itemsOfStaticNpc.length; i++ ) {
-                if ( super.boundingBoxCollide( this, game.itemsOfStaticNpc[i] ) ) {
-                    return true;
-                }
-            }
-        }
-        setAttack() {
-            Player.isAttack = true;
-            //console.log('ATTACK');
-        }
-
-        update() {
-            if ( game.isPressKey ) {
-                //console.log( game.pressed );
-                
-                for ( const code of game.pressedKeys.values() ) {
-                    switch ( code ) {
-                        case 'ArrowUp':
-                            this.sourceDY = 0;
-                            this.dx = 0;
-                            this.dy = -1;
-                            break;
-                        case 'ArrowLeft':
-                            this.sourceDY = 64;
-                            this.dx = -1;
-                            this.dy = 0;
-                            break;
-                        case 'ArrowDown':
-                            this.sourceDY = 128;
-                            this.dx = 0;
-                            this.dy = 1;
-                            break;
-                        case 'ArrowRight':
-                            this.sourceDY = 198;
-                            this.dx = 1;
-                            this.dy = 0;
-                            break;
-                        case 'Space':
-                            this.setAttack();
-                            //this.dx = 0;
-                            //this.dy = 0;
-                            break;
-                    }
-                }
-                //console.log( this.x, this.y );
-                if ( !game.pressedKeys.has( 'Space' ) ) {
-                    this.x = this.x + this.dx;
-                    this.y = this.y + this.dy;
-                }
-
-            }
-        }
-    }
-    class Body extends Player {
-        constructor( costumes, activeType, x, y, visibility ) { //tileSheet, animFrames, x, y, delay, visibility
-            super();
-            this.frameIndex = 0;
-            this.type = activeType;
-
-            if ( activeType === 'walk' ) {
-               // Player.isAttack = false;
-                this.tileSheet = costumes.walk[0].tileSheet;
-                this.animFrames = costumes.walk[0].animFrames;
-            }else{
-               // Player.isAttack = true;
-                this.tileSheet = costumes.attack[0].tileSheet;
-                this.animFrames = costumes.attack[0].animFrames;
-            }
-
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            this.dx = 0;
-            this.dy = 0;
-            this.delay = 100//delay animation;
-            //this.direction = 'down';
-            this.sourceDY = 128; 
-            this.moveMode = 'idle';
-            this.name = '';
-            this.visibility = visibility;
-        }
-        render() {
-
-            if ( this.visibility ) {
-
-                let animationFrames = [];
-                frameIndexCounter.delay = this.delay;
-
-                for ( let i = 0; i < this.animFrames; i++ ) {
-                    animationFrames.push( i );
-                }
-                //console.log( this.frameIndex );
-
-                let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.animFrames ) * 64;
-                let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.animFrames ) * 64;
-                //console.log( typeof this.tileSheet );
-                //console.log( this.tileSheet );
-                ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width, this.height );
-
-                //console.log( sourceX, sourceY );
-                if ( this.moveMode === 'run' ) {
-                    this.frameIndex = frameIndexCounter.frameIndex;
-                    //console.log( this.frameIndex );
-                    if ( this.frameIndex === animationFrames.length ) {
-                        this.frameIndex = 0;
-                        frameIndexCounter.frameIndex = 0;
-                    }
-                }else{
-                    this.frameIndex = 0;
-                }
-            }
-        }
-
-    }
-    class Clothes extends Player {
-        constructor( costumes, activeType, clothesType, x, y, visibility  ) { //  tileSheet, animFrames, x, y, delay, visibility
-            super();
-            this.frameIndex = 0;
-            this.type = activeType;
-            this.clothesType = game.getItemOfCostume(clothesType);
-            //console.log( this.clothesType );
-            if ( activeType === 'walk' ) {
-                //this.isAttack = false;
-                this.tileSheet = costumes.walk[this.clothesType].tileSheet;
-                this.animFrames = costumes.walk[this.clothesType].animFrames;
-            }else{
-                //this.isAttack = true;
-                this.tileSheet = costumes.attack[this.clothesType].tileSheet;
-                this.animFrames = costumes.attack[this.clothesType].animFrames;
-            }
-
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            this.dx = 0;
-            this.dy = 0;
-            this.delay = 100//delay animation;
-            //this.direction = 'down';
-            this.sourceDY = 128; 
-            this.moveMode = 'idle';
-            this.name = '';
-            this.visibility = visibility;
-        }
-        update() {
-            super.update();
-        }
-        render() {
-
-            if ( this.visibility ) {
-
-                let animationFrames = [];
-                frameIndexCounter.delay = this.delay;
-
-                for ( let i = 0; i < this.animFrames; i++ ) {
-                    animationFrames.push( i );
-                }
-
-                let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.animFrames ) * 64;
-                let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.animFrames ) * 64;
-                //console.log( typeof this.tileSheet );
-                ctx.drawImage( this.tileSheet, sourceX, sourceY + this.sourceDY, 64, 64, this.x, this.y, this.width, this.height );
-                //console.log( sourceX, sourceY );
-                if ( this.moveMode === 'run' ) {
-                    this.frameIndex = frameIndexCounter.frameIndex;
-                    //console.log( this.frameIndex );
-                    if ( this.frameIndex === animationFrames.length ) {
-                        this.frameIndex = 0;
-                        frameIndexCounter.frameIndex = 0;
-                    }
-                }else{
-                    this.frameIndex = 0;
-                }
-            }
-        }
-    }
-    class Weapon extends Player {
-        constructor( costumes, activeType, weaponsType, x, y, visibility ) {
-            super();
-            this.frameIndex = 0;
-            this.type = activeType;
-            this.weaponsType = game.getItemOfCostume(weaponsType);
-            //console.log( this.clothesType );
-            this.tileSheet = costumes.attack[this.weaponsType].tileSheet;
-            this.animFrames = costumes.attack[this.weaponsType].animFrames;
-
-            //this.tileSheet = tileSheet;
-            //this.animFrames = animFrames;
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            this.dx = 0;
-            this.dy = 0;
-            this.delay = 100// delay;
-            //this.direction = 'down';
-            this.sourceDY = 128; 
-            this.moveMode = 'idle';
-            this.visibility = visibility;
-            //console.log( tileSheet );
-            //console.log( tileSheet, animFrames, x, y, delay );
-        }
-        update() {
-            super.update();
-            if ( super.boundingStaticNpcCollide() && this.visibility  ) {
-                Player.isAttack = true;
-            }else{
-                Player.isAttack = false;
-            }
-
-        }
-        render() {
-            if ( this.visibility ) {
-                super.render();        
-            }
-        }
-    }
-    class ObjectOnMap extends Npc {
-        constructor( costumes, type, x, y, visibility ) {
-            super();
-            this.frameIndex = 0;
-            //this.type = activeType;
-            this.type = game.getItemOfObject(type);
-            //console.log( costumes, this.type );
-            this.tileSheet = costumes[this.type].tileSheet;
-            this.animFrames = costumes[this.type].animFrames;
-
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            //this.dx = 0;
-            //this.dy = 0;
-            this.delay = 100// delay;
-           // this.direction = 'down';
-            this.sourceDY = 0; 
-            this.moveMode = 'idle';
-            this.visibility = visibility;
-            //console.log( tileSheet );
-            //console.log( this.tileSheet, this.animFrames, x, y );
-        }
-
-        render() {
-            if ( this.visibility ) {
-                super.render();  
-            }
-        }
-
-        boundingPlayerCollide() {
-            for ( let i = 0; i < game.player.length; i++ ) {
-                if ( super.boundingBoxCollide( this, game.player[i] ) ) {
-                    return true;
-                }else  return false;
-            }
-        }
-
-        update() {
-            if ( this.boundingPlayerCollide() ) {
-                this.sourceDY = 64;
-            }else{
-                this.sourceDY = 0;
-            }
-        }
-    }
-    class StaticNpc extends Npc {
-        constructor( costumes, type, x, y, visibility ) {
-            super();
-            this.frameIndex = 0;
-            //this.type = activeType;
-            this.type = game.getItemOfNpc(type);
-            //console.log( costumes, this.type );
-            this.tileSheet = costumes[this.type].tileSheet;
-            this.animFrames = costumes[this.type].animFrames;
-
-            this.x = x;
-            this.y = y;
-            this.width = 64;
-            this.height = 64;
-            //this.dx = 0;
-            //this.dy = 0;
-            this.delay = 100// delay;
-           // this.direction = 'down';
-            this.sourceDY = 0; 
-            this.moveMode = 'idle';
-            this.isAnimate = true;
-            this.visibility = visibility;
-            this.startTimeAnimate = 0;
-            this.endTimeAnimate = 0;
-            this.life = 100;
-        }
-
-        render() {
-            if ( this.visibility ) {
-                super.render();  
-            }
-        }
-        
-        boundingPlayerCollide() {
-            for ( let i = 0; i < game.player.length; i++ ) {
-                if ( super.boundingBoxCollide( this, game.player[i] ) ) { //** по-идее надо проверять только если класс оружие
-                    return true;
-                }else  return false;
-            }
-        }
-
-        update() {
-            //если атакован, вращается 1 сек
-            if ( this.boundingPlayerCollide() && Player.isAttack ) {
-                this.moveMode = 'run';
-                this.startTimeAnimate = new Date().getTime();
-                this.life -= 0.1;
-                //console.log( this.life);
-            }else{
-                this.endTimeAnimate = new Date().getTime();
-                //console.log( this.life);
-
-                if ( ( this.endTimeAnimate - this.startTimeAnimate ) >= 1000 ) {
-                    this.moveMode = 'idle';
-                }
-            }
-        }
-        
-    }
-    class NonStaticNpc extends Npc {
-
-    }
-*/
     function gameStateWaitForLoad() {
 		//do nothing while loading events occur
 		//console.log( "doing nothing..." );
@@ -860,14 +446,20 @@ function canvasApp()  {
         tilesShieldSpear.idle.animFrames = 1;
 
         //************** LOAD JSON
-        requestURL = 'tiles/tileSheetOfMap.json';
-        request = new XMLHttpRequest();
-        request.open( 'GET', requestURL );
-        request.responseType = 'json';
-        request.send();
-        
-        request.addEventListener( 'load', itemLoaded, false );
-
+        //*map
+        requestURL_map = 'tiles/tileSheetOfMap.json';
+        request_map = new XMLHttpRequest();
+        request_map.open( 'GET', requestURL_map );
+        request_map.responseType = 'json';
+        request_map.send();
+        request_map.addEventListener( 'load', itemLoaded, false );
+        //*tiles
+        requestURL_tiles = 'tiles/tmw_desert_spacing.tsj';
+        request_tiles = new XMLHttpRequest();
+        request_tiles.open( 'GET', requestURL_tiles );
+        request_tiles.responseType = 'json';
+        request_tiles.send();
+        request_tiles.addEventListener( 'load', itemLoaded, false );
         
         switchGameState( GAME_STATE_WAIT_FOR_LOAD );
     }
@@ -879,28 +471,26 @@ function canvasApp()  {
         if ( loadCount >= itemsToLoad ) {
 
             //tileSheetOfMap.removeEventListener( 'load', itemLoaded , false );
-            request.removeEventListener( 'load', itemLoaded, false );
+            request_map.removeEventListener( 'load', itemLoaded, false );
             //TODO добавить все removeEventListener
             //*
             //*
-            jsonObj = request.response; 
-            tileMaps[0] = jsonObj.layers[0].data;
-            tileMaps[1] = jsonObj.layers[1].data;
-            //console.log( tileMaps );
-            placesSpawnPlayer[0] = jsonObj.layers[2].objects[0];
-            //console.log( placeSpawnPlayer[0] );
-            placesSpawnNonStaticNPC[0] = jsonObj.layers[3].objects[0];
-            placesSpawnNonStaticNPC[1] = jsonObj.layers[3].objects[1];
-            placesSpawnNonStaticNPC[2] = jsonObj.layers[3].objects[2];
-            placesSpawnNonStaticNPC[3] = jsonObj.layers[3].objects[3];
-            //console.log(  placesSpawnObject );
+            //*map
+            jsonObj_map = request_map.response;
+            //*tiles
+            jsonObj_tiles = (request_tiles.response).tiles;
+            //console.log( jsonObj_tiles );
+            listOfLayers = getLayerName();
+            //console.log( listOfLayers );
+            getEntityOfLayers()
 
-            placesSpawnStaticNPC[0] = jsonObj.layers[4].objects[0];
-            placesSpawnStaticNPC[1] = jsonObj.layers[4].objects[1];
-            placesSpawnStaticNPC[2] = jsonObj.layers[4].objects[2];
-            placesSpawnStaticNPC[3] = jsonObj.layers[4].objects[3];
-            //console.log(  placesSpawnNpc );
-            //console.log( jsonObj.layers.length );
+            tileMaps = layers.tileMaps;
+            //console.log( tileMaps );
+            placesSpawnPlayer = layers.layerPlayer;
+            //console.log( placesSpawnPlayer );
+            placesSpawnNonStaticNPC = layers.layerNpc;
+            //console.log( placesSpawnNonStaticNPC );
+            placesSpawnStaticNPC = layers.layerObject;
 
             //console.log( costumeSwordman );
             //console.log( weapons );
@@ -908,6 +498,40 @@ function canvasApp()  {
 
             switchGameState( GAME_STATE_TITLE );
         }
+    }
+
+    function getLayerName() {
+        let result = [];
+        for ( const obj of  jsonObj_map.layers ) {
+            result.push( obj.name );
+        }
+        return result
+    }
+
+    function getEntityOfLayers() {
+        //*map, places of spawn
+        for ( let i = 0; i < listOfLayers.length; i++ ) {
+            for ( const obj of  jsonObj_map.layers ) {
+                if ( ( obj.name === listOfLayers[i] || obj.name === listOfLayers[i] ) && obj.hasOwnProperty( 'data' ) ) {
+                    layers.tileMaps.push( obj.data ); 
+                }else
+                    if ( obj.name === listOfLayers[i] ) {
+                        layers[listOfLayers[i]] = (obj.objects).slice();
+                    }
+            }
+        }
+        //*collision object
+        let result = [];
+        for ( const obj of jsonObj_tiles ) {
+            if ( obj.hasOwnProperty( 'objectgroup' ) ) {
+                const tempObj = (obj.objectgroup).objects;
+                //console.log( tempObj );
+                result = result.concat( tempObj );
+            }
+        }
+        layers.collisionObject = result;
+        //console.log( result );
+       // console.log( layers );
     }
 
     function gameStateTitle() {
@@ -943,6 +567,8 @@ function canvasApp()  {
 		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
 	}
 
+    //let detector = {}
+    let collision = []
 
     function createPlayStage() {
 
@@ -964,18 +590,32 @@ function canvasApp()  {
             enemys[i] = new SKELETON( tilesBody, costumeSwordman, weapons, 'dagger', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
         }
 
-        //enemys[4] = new SKELETON( tilesBody, costumeBody, weapons, 'dagger', 200, 300, false, true );
         console.log( enemys );
        // console.log( costumesStaticNPC.putOn[0] );
-        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], 200, 100, true );
-        console.log( staticNPC );
+        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], 250, 100, true );
+        //console.log( staticNPC );
+        //* add collision
+        //box = new COLLISION( 200,200,100,100 )
+       // console.log( box );
+/*
+        Composite.add(engine.world, [ player.body.hull, enemys[0].body.hull, enemys[1].body.hull, enemys[2].body.hull, enemys[3].body.hull ] );
 
+        //console.log( Composite.allBodies( engine.world ) );
+
+        detector = Detector.create();
+        Detector.setBodies( detector, [ player.body.hull, enemys[0].body.hull, enemys[1].body.hull, enemys[2].body.hull, enemys[3].body.hull ] );
+        collisionArr = Detector.collisions(detector);
+        console.log( collisionArr );
+        console.log( detector );
+
+        //console.log( player.body.hull );
+*/
 
         console.log('create play field');
     }
 
     function getPointsSpawnNPC() {
-        console.log( placesSpawnStaticNPC, placesSpawnNonStaticNPC );
+        //console.log( placesSpawnStaticNPC, placesSpawnNonStaticNPC );
         let pointsSpawnStaticNPC = [];
         let pointsSpawnNonStaticNPC = [];
         //*get points Non Static
@@ -1004,10 +644,12 @@ function canvasApp()  {
     function gameStateRenderPlayScreen() {
         frameRateCounter.countFrames();
         frameIndexCounter.countFrames();
-        
-        //!check
+
         //!update
-        
+        player.update();
+        //!check
+        checkCollisions();
+
         renderPlayScreen();
     }
 
@@ -1022,13 +664,22 @@ function canvasApp()  {
                 let tileId = tileMaps[idMap][ mapIndex ] + mapIndexOffset;
                 let sourceX = Math.floor( tileId % 8 ) * 33;
                 let sourceY = Math.floor( tileId / 8 ) * 33;
+                //console.log( tileId );
                 //console.log( sourceX+1, sourceY+1, 'colCtr:', colCtr, 'rowCtr:', rowCtr );
                 ctx.drawImage( tileSheetOfMap, sourceX + 1, sourceY + 1, 32, 32, colCtr * 32, rowCtr * 32, 32, 32 );
                 mapIndex++;
+                //*add coords tiles
+                if ( !isGetCoordsTiles ) {
+                    coordsTiles.push( { x: colCtr * 32, y: rowCtr * 32 } );
+                    console.log('GetCoordsTiles');
+                }
 
                 if ( mapIndex === tileMaps[idMap].length ) {
                     //console.log( mapIndex );
+                    //console.log( coordsTiles );
+
                     mapIndex = undefined;
+                    isGetCoordsTiles = true;
                 }
             }
         }
@@ -1037,16 +688,19 @@ function canvasApp()  {
     function renderPlayScreen() {
 		drawPlayField(0);
         drawFPSCounter();
-        player.render();
-        player.update();
 
+		//!drawPlayer();
+        player.render();
+        //player.update();
+		//!drawEnemy();
         renderEnemys();
 
         staticNPC[0].render();
         //staticNPC[0].update();
-		//!drawPlayer();
-		//!drawEnemy();
-		
+        //*
+       // box.render()
+        //*Engine.update
+        Engine.update( engine, 1000 / 60 );
 	}
 
     function renderEnemys() {
@@ -1060,6 +714,34 @@ function canvasApp()  {
         ctx.font = '20px sans-serif';
         ctx.textBaseline = 'top';
         ctx.fillText ( "FPS:" + frameRateCounter.lastFrameCount, 0, 10 ); 
+    }
+
+    function checkCollisions() {
+        //console.log( pressesKeys );
+        //* check collision: player - enemys
+        if ( pressesKeys.size > 0 && !pressesKeys.has('Space') ) {
+            //console.log( pressesKeys.has('Space') );
+            let playerBody = player.body.hull;
+            let enemysBodys = [];
+            for ( let i = 0; i < enemys.length; i++ ) {
+                enemysBodys[i] = enemys[i].body.hull;
+            }
+            collision = Query.collides( playerBody, enemysBodys );
+
+            if ( collision.length > 0 ) {
+
+                //console.log( collision );
+
+                for ( let i = 0; i < collision.length; i++ ) {
+                    console.log( collision[i].penetration.x );
+                    Body.translate( playerBody, {x:collision[i].penetration.x * -1,y:collision[i].penetration.y * -1} );  
+                    //console.log( player );
+                    player.x = player.x + collision[i].penetration.x;
+                    player.y = player.y + collision[i].penetration.y;
+                    return;
+                }
+            }
+        }
     }
 
     function initCanvas() {

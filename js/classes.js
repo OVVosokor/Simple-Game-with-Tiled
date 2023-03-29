@@ -185,8 +185,12 @@ class HUMAN extends HOMO_SAPIENS {
         //*if it is player
         if ( isPlayer ) {
 
+            //*create collision body
+            this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
+            //console.log( this.body );
+            //*create lifeBar
             this.lifeBar = new LIFEBAR( this.x , this.y );
-            //console.log( this.lifeBar );
+           // console.log( this.lifeBar );
 
             //*create weapon
             this.weapons = weapons;
@@ -257,7 +261,15 @@ class HUMAN extends HOMO_SAPIENS {
                 }
                 this.renderLifeBar();
             }
+
+            this.renderCollision();
+
         }
+    }
+
+    //*render collision body
+    renderCollision() {
+        this.body.draw();
     }
 
     //*render life Bar
@@ -339,6 +351,7 @@ class HUMAN extends HOMO_SAPIENS {
                     this.y = this.y + this.dy;
                     this.lifeBar.x = this.x + this.dx;
                     this.lifeBar.y = this.y + this.dy;
+                    Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+32+5 } )
 
                     this.isAttack = false;
                     //console.log( pressesKeys );
@@ -643,6 +656,10 @@ class SKELETON extends HUMAN {
         this.visible = visible;
         //*life
         this.life = 100;
+
+        //*create collision body
+        this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
+        //console.log( this.body );
         //*create weapon
         this.weapons = weapons;
         this.weapon = new WEAPON( this.weapons, typeOfWeapon, this.x, this.y, true );
@@ -800,7 +817,7 @@ class PUT_ON extends STATIC {
         this.frameIndex = 0;
         this.costumes = costumes;
 
-        console.log( this.costumes );
+       // console.log( this.costumes );
 
         this.tileObject = {};
         //this.tilesToRenderWalk = [];
@@ -816,7 +833,7 @@ class PUT_ON extends STATIC {
         this.life = 100;
 
         this.tileObject = costumes.idle;
-        console.log( this.tileObject );
+        //console.log( this.tileObject );
     }
 
     render() {
@@ -839,3 +856,35 @@ class PUT_ON extends STATIC {
     }
 }
 
+class COLLISION {
+    constructor( x, y, width, height ) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.hull = Bodies.rectangle( this.x+32, this.y+32+5, this.width-32, this.height-15, { isStatic: true } );
+        //console.log( this.hull );
+    }
+
+    draw() {
+
+        let vertices = this.hull.vertices;
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+
+        for (var j = 1; j < vertices.length; j += 1) {
+            ctx.lineTo(vertices[j].x, vertices[j].y);
+        }
+
+        ctx.lineTo(vertices[0].x, vertices[0].y);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#ff0000';
+        ctx.stroke();
+    }
+
+    render() {
+        this.draw();
+    }
+
+}
