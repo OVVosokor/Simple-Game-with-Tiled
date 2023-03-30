@@ -102,6 +102,8 @@ function canvasApp()  {
     //let isRun = false;
     //let isPressKey = false;
     //window.isPressKey = isPressKey;
+    //*test booles
+    let flagCoordsTiles = false;
     //* key Presses
     const pressesKeys = new Set();
     window.pressesKeys = pressesKeys;
@@ -116,18 +118,17 @@ function canvasApp()  {
     let placesSpawnNonStaticNPC = [];
     let placesSpawnStaticNPC = [];
     //* walls
-    //let walls = [];
+    let walls = [];
     //* tiles
     let tiles = [];
     //* triggers
-    //let triggers = [];
+    let triggers = [];
     //*collision object
-    /*
-    const collision = {
+    const collisionsObjects = {
         walls: walls,
         tiles: tiles,
         triggers: triggers
-    }*/
+    }
     //* tiles objects
     let tilesBody = {
         titleTiles: 'body',
@@ -482,7 +483,7 @@ function canvasApp()  {
             //console.log( jsonObj_tiles );
             listOfLayers = getLayerName();
             //console.log( listOfLayers );
-            getEntityOfLayers()
+            getEntityOfLayers();
 
             tileMaps = layers.tileMaps;
             //console.log( tileMaps );
@@ -520,18 +521,25 @@ function canvasApp()  {
                     }
             }
         }
-        //*collision object
-        let result = [];
-        for ( const obj of jsonObj_tiles ) {
-            if ( obj.hasOwnProperty( 'objectgroup' ) ) {
-                const tempObj = (obj.objectgroup).objects;
+        //*collision objects
+        for ( let i = 0; i < jsonObj_tiles.length; i++ ) {
+            if ( jsonObj_tiles[i].hasOwnProperty( 'objectgroup' ) ) {
+                const tempId = jsonObj_tiles[i].id;
+                const tempObj = (jsonObj_tiles[i].objectgroup).objects;
+                for ( let j = 0; j < tempObj.length; j++ ) {
+                    tempObj[j].id = tempId;
+                    tiles.push( tempObj[j] );
+                }
                 //console.log( tempObj );
-                result = result.concat( tempObj );
+                //console.log( tempId );
+                //tiles[tempId] = tempObj;
+                //tempObj.id = tempId;
+                //tiles.push( tempObj )
             }
         }
-        layers.collisionObject = result;
         //console.log( result );
        // console.log( layers );
+        console.log( collisionsObjects );
     }
 
     function gameStateTitle() {
@@ -568,7 +576,7 @@ function canvasApp()  {
 	}
 
     //let detector = {}
-    let collision = []
+    let box = {}
 
     function createPlayStage() {
 
@@ -595,7 +603,7 @@ function canvasApp()  {
         staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], 250, 100, true );
         //console.log( staticNPC );
         //* add collision
-        //box = new COLLISION( 200,200,100,100 )
+        //box = new COLLISION( 0,0,40,20 )
        // console.log( box );
 /*
         Composite.add(engine.world, [ player.body.hull, enemys[0].body.hull, enemys[1].body.hull, enemys[2].body.hull, enemys[3].body.hull ] );
@@ -648,9 +656,10 @@ function canvasApp()  {
         //!update
         player.update();
         //!check
-        checkCollisions();
 
         renderPlayScreen();
+        checkCollisions();
+
     }
 
     function drawPlayField( idMap ) {
@@ -669,15 +678,43 @@ function canvasApp()  {
                 ctx.drawImage( tileSheetOfMap, sourceX + 1, sourceY + 1, 32, 32, colCtr * 32, rowCtr * 32, 32, 32 );
                 mapIndex++;
                 //*add coords tiles
-                if ( !isGetCoordsTiles ) {
-                    coordsTiles.push( { x: colCtr * 32, y: rowCtr * 32 } );
-                    console.log('GetCoordsTiles');
-                }
+                for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
+                    if ( !isGetCoordsTiles && tileId === collisionsObjects.tiles[i].id ) {
+                        let tempObj = new COLLISION( (colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2, 
+                        (rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2,
+                        collisionsObjects.tiles[i].width, collisionsObjects.tiles[i].height );
 
+                        coordsTiles.push( tempObj );
+                        /*
+                        coordsTiles.push( { x: (colCtr * 32) + collisionsObjects.tiles[i].x , 
+                                            y: (rowCtr * 32) + collisionsObjects.tiles[i].y,
+                                            width: collisionsObjects.tiles[i].width,
+                                            height: collisionsObjects.tiles[i].height
+                                        } );*/
+                        //console.log( tileId );
+                        //console.log( collisionsObjects.tiles[i].id );
+                        //console.log( colCtr * 32, rowCtr * 32 );
+                        console.log('GetCoordsTiles');
+                    }
+                }
+                //*test part - start
+                
+                if ( isGetCoordsTiles && !flagCoordsTiles ) {
+                    flagCoordsTiles = true;
+                    console.log( coordsTiles );
+                }/*
+                for ( let i = 0; i < coordsTiles.length; i++) {
+                    ctx.strokeRect( coordsTiles[i].x, coordsTiles[i].y, coordsTiles[i].width, coordsTiles[i].height );
+                }
+                */
+                /*
+                for ( let i = 0; i < coordsTiles.length; i++) {
+                    ctx.strokeRect( colCtr * 32, rowCtr * 32, 32,32 );
+                }*/
+
+                //*test part - end
                 if ( mapIndex === tileMaps[idMap].length ) {
                     //console.log( mapIndex );
-                    //console.log( coordsTiles );
-
                     mapIndex = undefined;
                     isGetCoordsTiles = true;
                 }
@@ -698,7 +735,13 @@ function canvasApp()  {
         staticNPC[0].render();
         //staticNPC[0].update();
         //*
-       // box.render()
+        
+        for (const tile of coordsTiles) {
+            tile.render();
+        }
+        //coordsTiles[117].render();
+
+        //box.render()
         //*Engine.update
         Engine.update( engine, 1000 / 60 );
 	}
@@ -718,26 +761,38 @@ function canvasApp()  {
 
     function checkCollisions() {
         //console.log( pressesKeys );
-        //* check collision: player - enemys
+        let collidings = [];
+        //* check collisions
         if ( pressesKeys.size > 0 && !pressesKeys.has('Space') ) {
             //console.log( pressesKeys.has('Space') );
+            //* check collision: player - enemys
             let playerBody = player.body.hull;
             let enemysBodys = [];
             for ( let i = 0; i < enemys.length; i++ ) {
                 enemysBodys[i] = enemys[i].body.hull;
             }
-            collision = Query.collides( playerBody, enemysBodys );
+            tempCollidingsEnemys = Query.collides( playerBody, enemysBodys );
 
-            if ( collision.length > 0 ) {
+            //* check collision: player - tiles
+            let tiles = [];
+            for ( let i = 0; i < coordsTiles.length; i++ ) {
+                tiles[i] = coordsTiles[i].hull;
+            }
+            //console.log( tiles );
+            tempCollidingsTiles = Query.collides( playerBody, tiles );
+            //console.log( tempCollidingsTiles );
+            //console.log( tempCollidingsEnemys );
+            collidings = tempCollidingsEnemys.concat( tempCollidingsTiles );
+            //console.log( collidings );
 
+            if ( collidings.length > 0 ) {
                 //console.log( collision );
-
-                for ( let i = 0; i < collision.length; i++ ) {
-                    console.log( collision[i].penetration.x );
-                    Body.translate( playerBody, {x:collision[i].penetration.x * -1,y:collision[i].penetration.y * -1} );  
+                for ( let i = 0; i < collidings.length; i++ ) {
+                    console.log( collidings[i].penetration.x );
+                    Body.translate( playerBody, {x:collidings[i].penetration.x * -1,y:collidings[i].penetration.y * -1} );  
                     //console.log( player );
-                    player.x = player.x + collision[i].penetration.x;
-                    player.y = player.y + collision[i].penetration.y;
+                    player.x = player.x + collidings[i].penetration.x;
+                    player.y = player.y + collidings[i].penetration.y;
                     return;
                 }
             }

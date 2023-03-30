@@ -185,8 +185,10 @@ class HUMAN extends HOMO_SAPIENS {
         //*if it is player
         if ( isPlayer ) {
 
-            //*create collision body
-            this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
+            //*create collision body this.x+32, this.y+32+5, this.width-32, this.height-15
+            this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
+            //this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
+
             //console.log( this.body );
             //*create lifeBar
             this.lifeBar = new LIFEBAR( this.x , this.y );
@@ -658,7 +660,7 @@ class SKELETON extends HUMAN {
         this.life = 100;
 
         //*create collision body
-        this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
+        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
         //console.log( this.body );
         //*create weapon
         this.weapons = weapons;
@@ -862,7 +864,7 @@ class COLLISION {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.hull = Bodies.rectangle( this.x+32, this.y+32+5, this.width-32, this.height-15, { isStatic: true } );
+        this.hull = Bodies.rectangle( this.x, this.y, this.width, this.height, { isStatic: true } );
         //console.log( this.hull );
     }
 
