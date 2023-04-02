@@ -144,10 +144,10 @@ class HOMO_SAPIENS extends NONSTATIC {
 }
 
 class HUMAN extends HOMO_SAPIENS {
-    constructor( bodyes, costumes, weapons, typeOfWeapon, x, y, isPlayer, visible ) {
+    constructor( bodyes, costumes, typeOfCostume, x, y, isPlayer, visible ) {
         super();
 
-        //console.log( costumes );
+        console.log( costumes );
 
         //*coords
         this.x = x;
@@ -161,9 +161,7 @@ class HUMAN extends HOMO_SAPIENS {
         this.frameIndex = 0;
         this.bodyes = [ bodyes ];
         this.costumes = costumes;
-
-       // console.log( this.costumes );
-
+        this.typeOfCostume = typeOfCostume;
         this.tileObject = {};
         this.tilesToRenderWalk = [];
         this.tilesToRenderAttack = [];
@@ -185,65 +183,94 @@ class HUMAN extends HOMO_SAPIENS {
         //*if it is player
         if ( isPlayer ) {
 
-            //*create collision body this.x+32, this.y+32+5, this.width-32, this.height-15
-            this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
-            //this.body = new COLLISION( this.x, this.y, this.width, this.height, { isStatic: true } );
-
-            //console.log( this.body );
+            //*create collision body 
+            this.createCollisionBody();
             //*create lifeBar
-            this.lifeBar = new LIFEBAR( this.x , this.y );
-           // console.log( this.lifeBar );
-
-            //*create weapon
-            this.weapons = weapons;
-            this.weapon = new WEAPON( this.weapons, typeOfWeapon, this.x, this.y, true );
-            
-
-            if ( this.costumes.length > 1 ) {
-
-                //*get list of name costumes
-                this.nameCostumes = this.costumes[ this.costumes.length - 1 ][ this.costumes[0] ]; 
-                //*create Clothes object
-                for ( let i = 0; i < this.nameCostumes.length; i++ ) {
-                    this.tempCostume[i] = new CLOTHES( this.costumes, this.nameCostumes[i], this.x, this.y, true );
-                }
-                //*add all objects: costumes, weapon
-                for ( let i = 0; i < this.tempCostume.length; i++ ) {
-                    this.currentCostume.push( this.tempCostume[i] )
-                }
-                this.currentCostume = this.bodyes.concat( this.currentCostume ) ;
-            }else{
-                this.currentCostume = this.bodyes;
-            }
-
-            this.currentCostume.push( this.weapon );
-            //console.log( this.currentCostume );
-
-            //*****************load tiles
-            //*load walk tiles
-            for ( let i = 0; i < this.currentCostume.length; i++ ) {
-                if ( i === 0 ) {
-                    this.tilesToRenderWalk.push( this.currentCostume[i].human.walk );
-                    this.currentCostume[i].human.walk.visible = this.visible;
-                }else{
-                    this.tilesToRenderWalk.push( this.currentCostume[i].tilesToRenderWalk );
-                    //console.log( this.currentCostume[i] );
-                }
-            }
-            //*load attack tiles
-            for ( let i = 0; i < this.currentCostume.length; i++ ) {
-                if ( i === 0 ) {
-                    this.tilesToRenderAttack.push( this.currentCostume[i].human.attack );
-                    this.currentCostume[i].human.attack.visible = this.visible;
-                }else{
-                    this.tilesToRenderAttack.push( this.currentCostume[i].tilesToRenderAttack );
-                }
-            }
-        //console.log( this.tilesToRenderWalk );
-        // console.log( this.tilesToRenderAttack );
+            this.createLifeBar();
+            //*create weapon and costumes
+            this.getCurrentCostume( this.costumes, this.typeOfCostume );
         }
     }   
 
+    createCollisionBody() {
+        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
+        //console.log( this.body );
+    }
+
+    createLifeBar() {
+        this.lifeBar = new LIFEBAR( this.x , this.y );
+        // console.log( this.lifeBar );
+    }
+
+    getCurrentCostume( costumes, typeOfCostume ) {
+        //console.log( costumes[ typeOfCostume ] );
+        //*set defaults
+        this.currentCostume = [];
+        this.tilesToRenderWalk = [];
+        this.tilesToRenderAttack = [];
+        this.currentWeapons = [];
+        //*
+        if ( costumes[ typeOfCostume ].length > 1 ) {
+            //*get start costume
+            let startCostume = costumes[ typeOfCostume ];
+            //console.log( startCostume );
+            //*get weapons array
+            let weapons = startCostume[ startCostume.length - 2 ];
+            //*get weapon tile
+            for ( const weapon of weapons ) {
+                //let tempWeaponTile = startCostume[ startCostume.length - 2 ];
+                //*create current weapon
+                let currentWeapon = new WEAPON( weapon, weapon.titleTiles, this.x, this.y, true );
+                this.currentWeapons.push( currentWeapon );
+            }
+            //console.log( this.currentWeapons );
+           // let tempWeaponTile = startCostume[ startCostume.length - 2 ];
+            //*create current weapon
+           // this.currentWeapon = new WEAPON( tempWeaponTile, tempWeaponTile.titleTiles, this.x, this.y, true );
+            //console.log( this.currentWeapon );
+            //*get list of name costumes
+            let nameCostumes = startCostume[ startCostume.length - 1 ][ typeOfCostume ];
+            //*create Clothes object
+            for ( let i = 0; i < nameCostumes.length-1; i++ ) {
+                this.tempCostume[i] = new CLOTHES( costumes[ typeOfCostume ], nameCostumes[i], this.x, this.y, true );
+            }
+            //*add all objects: costumes, weapon
+            for ( let i = 0; i < this.tempCostume.length; i++ ) {
+                this.currentCostume.push( this.tempCostume[i] )
+            }
+            this.currentCostume = this.bodyes.concat( this.currentCostume ) ;
+        }else{
+            this.currentCostume = this.bodyes;
+        }
+
+        this.currentCostume = this.currentCostume.concat( this.currentWeapons ) ;
+        //this.currentCostume.push( this.currentWeapons );
+        //console.log( this.currentCostume );
+
+        //*****************load tiles
+        //*load walk tiles
+        for ( let i = 0; i < this.currentCostume.length; i++ ) {
+            if ( i === 0 ) {
+                this.tilesToRenderWalk.push( this.currentCostume[i].human.walk );
+                this.currentCostume[i].human.walk.visible = this.visible;
+            }else{
+                this.tilesToRenderWalk.push( this.currentCostume[i].tilesToRenderWalk );
+                //console.log( this.currentCostume[i] );
+            }
+        }
+        //*load attack tiles
+        for ( let i = 0; i < this.currentCostume.length; i++ ) {
+            if ( i === 0 ) {
+                this.tilesToRenderAttack.push( this.currentCostume[i].human.attack );
+                this.currentCostume[i].human.attack.visible = this.visible;
+            }else{
+                this.tilesToRenderAttack.push( this.currentCostume[i].tilesToRenderAttack );
+            }
+        }
+        //console.log( this.tilesToRenderWalk );
+        //console.log( this.tilesToRenderAttack );
+        console.log('current costume is loading');
+    }
 
     //*render
     render() {
@@ -285,18 +312,21 @@ class HUMAN extends HOMO_SAPIENS {
         this.isAttack = true;
     }
 
-    setNewWeapon() {
-        console.log( this.tilesToRenderWalk );
-
+    setNewWeapon( obj ) {
+        //console.log( obj );
+        //console.log( obj.store, obj.type );
+        this.getCurrentCostume( obj.store, obj.type );
+        console.log('set new Weapon');
+        //console.log( this.tilesToRenderAttack );
+        //console.log( this.currentCostume );
+        /*
         for ( let i = 0; i < this.currentCostume.length; i++ ) {
             if ( this.currentCostume[i] instanceof WEAPON ) {
-               // console.log( item );
-                this.currentCostume[i] = {}
-                //this.tilesToRenderWalk[5] = {}
+                //this.currentCostume[i] = {};
             }
-        }
-        console.log( this.tilesToRenderWalk );
-        console.log( this.currentCostume );
+        }*/
+        //console.log( this.tilesToRenderAttack );
+        //console.log( this.currentCostume );
     }
 
     //*check keys
@@ -342,7 +372,7 @@ class HUMAN extends HOMO_SAPIENS {
                             break;
                         case 'KeyE':
                             console.log('key E');
-                            this.setNewWeapon()
+                            //this.setNewWeapon();
                             break;
                     }
                 }
@@ -353,8 +383,7 @@ class HUMAN extends HOMO_SAPIENS {
                     this.y = this.y + this.dy;
                     this.lifeBar.x = this.x + this.dx;
                     this.lifeBar.y = this.y + this.dy;
-                    Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+32+5 } )
-
+                    Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+37 } );
                     this.isAttack = false;
                     //console.log( pressesKeys );
                     //console.log( this.isAttack );
@@ -362,7 +391,7 @@ class HUMAN extends HOMO_SAPIENS {
             }else{
                 this.moveMode = 'idle';
                 this.isAnimate = false;
-                this.isAttack = false
+                this.isAttack = false;
                 //console.log( this.isAttack );
                 //console.log( pressesKeys );
             }
@@ -495,7 +524,8 @@ class CLOTHES {
 }
 
 class WEAPON {
-    constructor( weapons, typeOfWeapon, x, y, visible ) {
+    constructor( weaponTile, typeOfWeapon, x, y, visible ) {
+        //console.log( weaponTile );
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
@@ -508,8 +538,10 @@ class WEAPON {
         this.moveMode = 'idle'; //run
         this.isAnimate = false;
         this.visible = visible;
-        this.indexWeapon = this.getItemOfWeapon( typeOfWeapon );
-        this.tiles = weapons;
+        //this.indexWeapon = this.getItemOfWeapon( typeOfWeapon );
+        //this.tiles = weaponTile;
+        this.tile = weaponTile;
+
        //console.log( this.indexWeapon, this.tiles );
         this.type = typeOfWeapon;
         this.tileObject = {};
@@ -523,25 +555,15 @@ class WEAPON {
         //console.log( this.tilesToRenderAttack );
         //console.log( this.tiles );
         //console.log(  this.tiles[1].walk  );
-
-        for ( let i = 0; i < this.tiles.length; i++ ) {
-            if ( i === this.indexWeapon ) {
-                this.tilesToRenderWalk = this.tiles[i].walk;
-                this.tilesToRenderWalk.visible = this.visible;
-                //console.log( this.tilesToRenderWalk );
-            }
-        }
-        //load attack tiles
-        for ( let i = 0; i < this.tiles.length; i++ ) {
-            if ( i === this.indexWeapon ) {
-                this.tilesToRenderAttack = this.tiles[i].attack;
-                this.tilesToRenderAttack.visible = this.visible;
-                //console.log( this.tilesToRenderAttack );
-            }
-        }
+        //*load attack tiles
+        this.tilesToRenderWalk = this.tile.walk;
+        this.tilesToRenderWalk.visible = this.visible;
+        this.tilesToRenderAttack = this.tile.attack;
+        this.tilesToRenderAttack.visible = this.visible;
 
         //console.log( this.tileObject );
     }
+    /*
     //*get index of clothes
     getItemOfWeapon( type ) {
         switch ( type ) {
@@ -556,7 +578,7 @@ class WEAPON {
             case 'bow':
                 return 5;
         }
-    }
+    }*/
     //*draw clothes
     draw() {
         //console.log( this.isAnimate );
@@ -617,9 +639,7 @@ class WEAPON {
 }
 
 class SKELETON extends HUMAN {
-    constructor( bodyes, costumes, weapons, typeOfWeapon, x, y, isPlayer, visible ) {
-
-        //console.log( bodyes, costumes, weapons, typeOfWeapon, x, y, isPlayer, visible  );
+    constructor( bodyes, costumes, typeOfCostume, x, y, isPlayer, visible ) {
 
         super();
 
@@ -641,6 +661,7 @@ class SKELETON extends HUMAN {
         this.frameIndex = 0;
         this.bodyes = [ bodyes ];
         this.costumes = costumes;
+        this.typeOfCostume = typeOfCostume;
         this.tileObject = {};
         this.tilesToRenderWalk = [];
         this.tilesToRenderAttack = [];
@@ -660,57 +681,26 @@ class SKELETON extends HUMAN {
         this.life = 100;
 
         //*create collision body
-        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
-        //console.log( this.body );
-        //*create weapon
-        this.weapons = weapons;
-        this.weapon = new WEAPON( this.weapons, typeOfWeapon, this.x, this.y, true );
-
-        if ( this.costumes.length > 1 ) {
-
-            //*get list of name costumes
-            this.nameCostumes = this.costumes[ this.costumes.length - 1 ][ this.costumes[0] ];
-
-            //*create Clothes object
-            for ( let i = 0; i < this.nameCostumes.length; i++ ) {
-                this.tempCostume[i] = new CLOTHES( this.costumes, this.nameCostumes[i], this.x, this.y, true );
-            }
-            //*add all objects: costumes, weapon
-            for ( let i = 0; i < this.tempCostume.length; i++ ) {
-                this.currentCostume.push( this.tempCostume[i] )
-            }
-            this.currentCostume = this.bodyes.concat( this.currentCostume );
-        }else{
-            this.currentCostume = this.bodyes;
-        }
-
-        this.currentCostume.push( this.weapon );
-        //console.log( this.currentCostume );
-
-        //*****************load tiles
-        //*load walk tiles
-        for ( let i = 0; i < this.currentCostume.length; i++ ) {
-            if ( i === 0 ) {
-                this.tilesToRenderWalk.push( this.currentCostume[i].skeleton.walk );
-                this.currentCostume[i].skeleton.walk.visible = this.visible;
-            }else{
-                this.tilesToRenderWalk.push( this.currentCostume[i].tilesToRenderWalk );
-                //console.log( this.currentCostume[i] );
-            }
-        }
-        //*load attack tiles
-        for ( let i = 0; i < this.currentCostume.length; i++ ) {
-            if ( i === 0 ) {
-                this.tilesToRenderAttack.push( this.currentCostume[i].skeleton.attack );
-                this.currentCostume[i].skeleton.attack.visible = this.visible;
-            }else{
-                this.tilesToRenderAttack.push( this.currentCostume[i].tilesToRenderAttack );
-            }
-        }
-       //console.log( this.tilesToRenderWalk );
-       // console.log( this.tilesToRenderAttack );
+        this.createCollisionBody();
+        //*create lifeBar
+        this.createLifeBar();
+        //*create costumes and weapon
+        this.getCurrentCostume();
     }
 
+    createCollisionBody() {
+        super.createCollisionBody();
+        //console.log( this.body );
+    }
+
+    createLifeBar() {
+        super.createLifeBar();
+        // console.log( this.lifeBar );
+    }
+
+    getCurrentCostume() {
+        super.getCurrentCostume( this.costumes, this.typeOfCostume );
+    }
 
     //*render
     render() {
@@ -805,7 +795,7 @@ class STATIC extends NONSTATIC {
 }
 
 class PUT_ON extends STATIC {
-    constructor( costumes, x, y, visible ) {
+    constructor( costumes, store, typeOfCostume, x, y, visible ) {
         super();
         //*coords
         this.x = x;
@@ -829,17 +819,43 @@ class PUT_ON extends STATIC {
         //this.sourceDY = 128; 
         //this.moveMode = 'idle';
         this.isAnimate = false;
+        //*create collision body 
+        this.body = new COLLISION( this.x+this.width/2, this.y+this.height/2, this.width, this.height, { isStatic: true } );
+       // console.log( this.body );
         //*booles
         this.visible = visible;
+        //this.isDelete = false;
         //*life
         this.life = 100;
 
         this.tileObject = costumes.idle;
         //console.log( this.tileObject );
+        //*store
+        this.store = store;
+        //*type
+        this.type = typeOfCostume;
+        //console.log( store );
+    }
+    /*
+    //*make deleted
+    deleteObj() {
+        if ( this.isDelete ) {
+            this.visible = false;
+            delete this.body;
+            console.log( this.body);
+        }
+    }*/
+
+    //*render collision body
+    renderCollision() {
+        this.body.draw();
     }
 
     render() {
-       super.render();
+        if ( this.visible ) {
+            super.render();
+            this.renderCollision();
+        }
     }
 
     //*check keys
@@ -888,5 +904,4 @@ class COLLISION {
     render() {
         this.draw();
     }
-
 }

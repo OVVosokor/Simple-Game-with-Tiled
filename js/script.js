@@ -68,7 +68,7 @@ function canvasApp()  {
 
 	//* loading
     let loadCount = 0;
-    const itemsToLoad = 24;
+    const itemsToLoad = 26;
     let requestURL_map; 
     let request_map; 
     let requestURL_tiles; 
@@ -110,8 +110,8 @@ function canvasApp()  {
     //* objects
     let player = {};
     let enemys = [];
-    let npc = [];
-    let nonStaticNPC = [ enemys, npc ];
+    //let npc = [];
+    //let nonStaticNPC = [ enemys, npc ];
     let staticNPC = [];
     //* places Spawn
     let placesSpawnPlayer = [];
@@ -129,6 +129,16 @@ function canvasApp()  {
         tiles: tiles,
         triggers: triggers
     }
+    //*collidings
+    const collidings = {
+        enemys: [],
+        tiles: [],
+        walls: [],
+        triggers: [],
+        staticNPC: [],
+        summary: []
+    };
+    //window.collidings = collidings;
     //* tiles objects
     let tilesBody = {
         titleTiles: 'body',
@@ -183,6 +193,12 @@ function canvasApp()  {
         walk: {},
         attack: {}
     };
+    let tilesSpear = {
+        titleTiles: 'spear',
+        type: 'weapon',
+        walk: {},
+        attack: {}
+    };
     let tilesShield = {
         titleTiles: 'shield',
         type: 'weapon',
@@ -208,19 +224,26 @@ function canvasApp()  {
 
     //* costumes
     const namesCostumes = {
-        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders' ],
-        weapons: [ 'dagger', 'shield', 'quiver', 'spear', 'bow' ]
+        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'dagger' ],
+        spearman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'shield', 'spear' ]
+        //,
+        //weapons: [ 'dagger', 'shield', 'quiver', 'spear', 'bow' ]
         //others
     };
-    const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, namesCostumes ];
-    const weapons = [ 'weapons', tilesDagger, tilesShield, tilesQuiver, namesCostumes ];
+    const costumes = {
+        swordman: [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, [tilesDagger], namesCostumes ],
+        spearman: [ 'spearman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, [tilesShield, tilesSpear], namesCostumes ]
+    };
+    //const costumeSwordman = [ 'swordman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, namesCostumes ];
+    //const costumeSpearman = [ 'spearman', tilesHead, tilesFeet, tilesLegs, tilesTorso, tilesBracers, tilesShoulders, namesCostumes ];
+    const weapons = [ 'weapons', tilesDagger, tilesShield, tilesQuiver, tilesSpear, namesCostumes ];
     //const costumeInteractingNPC = [ tilesDummy ];
     //const costumesPutOnNPC = [ tilesShieldSpear ];
     const costumesStaticNPC = {
         interacting: [ tilesDummy ],
         putOn: [ tilesShieldSpear ]
     }
-    const costumeBody = [ 'costume Body' ];
+    //const costumeBody = [ 'costume Body' ];
 
     function switchGameState( newState ) {
 
@@ -392,6 +415,7 @@ function canvasApp()  {
         tilesShoulders.attack.animFrames = 6;
 
         //************** WEAPON
+        //***** attack
         //*dagger
         const tileSheetOfWEAPON_dagger = new Image();
         tileSheetOfWEAPON_dagger.addEventListener( 'load', itemLoaded , false );
@@ -399,6 +423,22 @@ function canvasApp()  {
         //add propeties
         tilesDagger.attack.tileSheet = tileSheetOfWEAPON_dagger;
         tilesDagger.attack.animFrames = 6;
+        //*shield
+        const tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack = new Image();
+        tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack.src = "tiles/thrust/WEAPON_shield_cutout_chain_armor_helmet.png";
+        //add propeties
+        tilesShield.attack.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack;
+        tilesShield.attack.animFrames = 8;
+        //*spear
+        const tileSheetOfWEAPON_spear = new Image();
+        tileSheetOfWEAPON_spear.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfWEAPON_spear.src = "tiles/thrust/WEAPON_spear.png";
+        //add propeties
+        tilesSpear.attack.tileSheet = tileSheetOfWEAPON_spear;
+        tilesSpear.attack.animFrames = 8;
+
+        //***** walk
         //*shield
         const tileSheetOfWEAPON_shield_cutout_chain_armor_helmet = new Image();
         tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
@@ -575,7 +615,6 @@ function canvasApp()  {
 		switchGameState( GAME_STATE_RENDER_PLAY_SCREEN );
 	}
 
-    //let detector = {}
     let box = {}
 
     function createPlayStage() {
@@ -587,37 +626,21 @@ function canvasApp()  {
         
 
         //*spawns
-        player = new HUMAN( tilesBody, costumeSwordman, weapons, 'dagger', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); 
-        console.log( player );
+        player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); 
+        //console.log( player );
 
         const pointsSpawnNPC = getPointsSpawnNPC();
         //console.log(  pointsSpawnNPC);
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
 
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
-            enemys[i] = new SKELETON( tilesBody, costumeSwordman, weapons, 'dagger', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
+            enemys[i] = new SKELETON( tilesBody, costumes, 'swordman', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
         }
 
-        console.log( enemys );
+        //console.log( enemys );
        // console.log( costumesStaticNPC.putOn[0] );
-        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], 250, 100, true );
+        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], costumes, 'spearman', 250, 100, true );
         //console.log( staticNPC );
-        //* add collision
-        //box = new COLLISION( 0,0,40,20 )
-       // console.log( box );
-/*
-        Composite.add(engine.world, [ player.body.hull, enemys[0].body.hull, enemys[1].body.hull, enemys[2].body.hull, enemys[3].body.hull ] );
-
-        //console.log( Composite.allBodies( engine.world ) );
-
-        detector = Detector.create();
-        Detector.setBodies( detector, [ player.body.hull, enemys[0].body.hull, enemys[1].body.hull, enemys[2].body.hull, enemys[3].body.hull ] );
-        collisionArr = Detector.collisions(detector);
-        console.log( collisionArr );
-        console.log( detector );
-
-        //console.log( player.body.hull );
-*/
 
         console.log('create play field');
     }
@@ -681,28 +704,21 @@ function canvasApp()  {
                 for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
                     if ( !isGetCoordsTiles && tileId === collisionsObjects.tiles[i].id ) {
                         let tempObj = new COLLISION( (colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2, 
-                        (rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2,
-                        collisionsObjects.tiles[i].width, collisionsObjects.tiles[i].height );
+                            (rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2,
+                            collisionsObjects.tiles[i].width, collisionsObjects.tiles[i].height );
 
                         coordsTiles.push( tempObj );
-                        /*
-                        coordsTiles.push( { x: (colCtr * 32) + collisionsObjects.tiles[i].x , 
-                                            y: (rowCtr * 32) + collisionsObjects.tiles[i].y,
-                                            width: collisionsObjects.tiles[i].width,
-                                            height: collisionsObjects.tiles[i].height
-                                        } );*/
                         //console.log( tileId );
                         //console.log( collisionsObjects.tiles[i].id );
-                        //console.log( colCtr * 32, rowCtr * 32 );
                         console.log('GetCoordsTiles');
                     }
                 }
                 //*test part - start
-                
+                /*
                 if ( isGetCoordsTiles && !flagCoordsTiles ) {
                     flagCoordsTiles = true;
                     console.log( coordsTiles );
-                }/*
+                }
                 for ( let i = 0; i < coordsTiles.length; i++) {
                     ctx.strokeRect( coordsTiles[i].x, coordsTiles[i].y, coordsTiles[i].width, coordsTiles[i].height );
                 }
@@ -726,20 +742,21 @@ function canvasApp()  {
 		drawPlayField(0);
         drawFPSCounter();
 
-		//!drawPlayer();
-        player.render();
         //player.update();
 		//!drawEnemy();
         renderEnemys();
-
-        staticNPC[0].render();
+        //*!staticNPC();
+        renderStaticNPC();
+        //staticNPC[0].render();
         //staticNPC[0].update();
         //*
-        
+        /*
         for (const tile of coordsTiles) {
             tile.render();
-        }
+        }*/
         //coordsTiles[117].render();
+		//!drawPlayer();
+        player.render();
 
         //box.render()
         //*Engine.update
@@ -749,6 +766,11 @@ function canvasApp()  {
     function renderEnemys() {
         for (const enemy of enemys ) {
             enemy.render();
+        }
+    }
+    function renderStaticNPC() {
+        for (const item of staticNPC ) {
+            item.render();
         }
     }
 
@@ -761,38 +783,76 @@ function canvasApp()  {
 
     function checkCollisions() {
         //console.log( pressesKeys );
-        let collidings = [];
+        //let collidings = [];
         //* check collisions
-        if ( pressesKeys.size > 0 && !pressesKeys.has('Space') ) {
-            //console.log( pressesKeys.has('Space') );
-            //* check collision: player - enemys
+        if ( pressesKeys.size > 0 && !pressesKeys.has('Space') && !pressesKeys.has('KeyE') ) {
             let playerBody = player.body.hull;
+            //* check collision: player - enemys
             let enemysBodys = [];
             for ( let i = 0; i < enemys.length; i++ ) {
                 enemysBodys[i] = enemys[i].body.hull;
             }
-            tempCollidingsEnemys = Query.collides( playerBody, enemysBodys );
-
+            collidings.enemys = Query.collides( playerBody, enemysBodys );
             //* check collision: player - tiles
             let tiles = [];
             for ( let i = 0; i < coordsTiles.length; i++ ) {
                 tiles[i] = coordsTiles[i].hull;
             }
             //console.log( tiles );
-            tempCollidingsTiles = Query.collides( playerBody, tiles );
-            //console.log( tempCollidingsTiles );
-            //console.log( tempCollidingsEnemys );
-            collidings = tempCollidingsEnemys.concat( tempCollidingsTiles );
+            collidings.tiles = Query.collides( playerBody, tiles );
+            //* add summary
+            collidings.summary = collidings.enemys.concat( collidings.tiles );
+            //console.log( collidings );
+            //console.log( collidings.summary );
+            //* check collision: player - put-on objects
+            let putOnObj = [];
+            for ( let i = 0; i < staticNPC.length; i++ ) {
+                putOnObj[i] = staticNPC[i].body.hull;
+            }
+            //console.log( putOnObj );
+            collidings.staticNPC = Query.collides( playerBody, putOnObj );
             //console.log( collidings );
 
-            if ( collidings.length > 0 ) {
-                //console.log( collision );
-                for ( let i = 0; i < collidings.length; i++ ) {
-                    console.log( collidings[i].penetration.x );
-                    Body.translate( playerBody, {x:collidings[i].penetration.x * -1,y:collidings[i].penetration.y * -1} );  
+            if ( collidings.summary.length > 0 ) {
+                for ( let i = 0; i < collidings.summary.length; i++ ) {
+                    //console.log( collidings.summary[i].penetration.x );
+                    Body.translate( playerBody, {x:collidings.summary[i].penetration.x * -1,y:collidings.summary[i].penetration.y * -1} );  
                     //console.log( player );
-                    player.x = player.x + collidings[i].penetration.x;
-                    player.y = player.y + collidings[i].penetration.y;
+                    player.x = player.x + collidings.summary[i].penetration.x;
+                    player.y = player.y + collidings.summary[i].penetration.y;
+                    return;
+                }
+            }
+        }
+
+        if ( pressesKeys.has('KeyE') ) {
+            //console.log( player );
+            if ( collidings.staticNPC.length > 0 ) {
+                //let tempId = collidings.staticNPC
+                for ( let i = 0; i < collidings.staticNPC.length; i++ ) {
+                    //console.log( collidings.staticNPC[0].bodyB );
+                    let bodyB = collidings.staticNPC[0].bodyB;
+                    let tempId = bodyB.id;
+                    //console.log(tempId);
+                    let tempObj = {};
+
+                    for ( const item of staticNPC ) {
+                        //console.log(item.body.hull.id);
+                        if (  item.hasOwnProperty( 'body' ) ) {
+                            let itemId = item.body.hull.id;
+                            if ( tempId === itemId ) {
+                                tempObj = item;
+                            }
+                        }
+                    }
+                    if ( tempObj.visible ) {
+                        //console.log( tempObj.visible );
+                        player.setNewWeapon( tempObj );
+                        //*delete put-on object
+                        
+                        staticNPC.splice(0);
+                        //console.log( staticNPC );
+                    }
                     return;
                 }
             }
