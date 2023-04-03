@@ -153,7 +153,7 @@ function canvasApp()  {
             attack: {}
         }
     };*/
-    const tilesBody = {
+    const tilesOfBody = {
         titleTiles: 'body',
         human: {
             walk: {},
@@ -299,7 +299,7 @@ function canvasApp()  {
         bracers: tilesBracersThrust,
         shoulders: tilesShouldersThrust
     };
-    const costumeTiles = {
+    const tilesOfCostume = {
         head: {
             walk: {},
             slash: {},
@@ -329,6 +329,18 @@ function canvasApp()  {
             walk: {},
             slash: {},
             thrust: {}
+        },
+        dagger: {
+            walk: {},
+            attack: {}    
+        },
+        spear: {
+            walk: {},
+            attack: {}    
+        },
+        shield: {
+            walk: {},
+            attack: {}    
         }
     };
     //* costumes
@@ -421,58 +433,58 @@ function canvasApp()  {
         tileSheetOfWalks.addEventListener( 'load', itemLoaded , false );
         tileSheetOfWalks.src = "tiles/walkcycle/BODY_male.png";
         //add propeties
-        tilesBody.human.walk.tileSheet = tileSheetOfWalks;
-        tilesBody.human.walk.animFrames = 9;
+        tilesOfBody.human.walk.tileSheet = tileSheetOfWalks;
+        tilesOfBody.human.walk.animFrames = 9;
         //*body skeleton walk
         const tileSheetOfBody_skeleton = new Image();
         tileSheetOfBody_skeleton.addEventListener( 'load', itemLoaded , false );
         tileSheetOfBody_skeleton.src = "tiles/walkcycle/BODY_skeleton.png";
         //add propeties
-        tilesBody.skeleton.walk.tileSheet = tileSheetOfBody_skeleton;
-        tilesBody.skeleton.walk.animFrames = 9;
+        tilesOfBody.skeleton.walk.tileSheet = tileSheetOfBody_skeleton;
+        tilesOfBody.skeleton.walk.animFrames = 9;
         //*head walk
         const tileSheetOfHEAD_chain_armor_helmet = new Image();
         tileSheetOfHEAD_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
         tileSheetOfHEAD_chain_armor_helmet.src = "tiles/walkcycle/HEAD_chain_armor_helmet.png";
         //add propeties
-        costumeTiles.head.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
-        costumeTiles.head.walk.animFrames = 9;
+        tilesOfCostume.head.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
+        tilesOfCostume.head.walk.animFrames = 9;
         //costumeTiles.head.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
         //*bracers walk
         const tileSheetOfTORSO_leather_armor_bracers = new Image();
         tileSheetOfTORSO_leather_armor_bracers.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_bracers.src = "tiles/walkcycle/TORSO_leather_armor_bracers.png";
         //add propeties
-        costumeTiles.bracers.walk.tileSheet = tileSheetOfTORSO_leather_armor_bracers;
-        costumeTiles.bracers.walk.animFrames = 9;
+        tilesOfCostume.bracers.walk.tileSheet = tileSheetOfTORSO_leather_armor_bracers;
+        tilesOfCostume.bracers.walk.animFrames = 9;
         //*feet walk
         const tileSheetOfFEET_shoes_brown = new Image();
         tileSheetOfFEET_shoes_brown.addEventListener( 'load', itemLoaded , false );
         tileSheetOfFEET_shoes_brown.src = "tiles/walkcycle/FEET_shoes_brown.png";
         //add propeties
-        costumeTiles.feet.walk.tileSheet = tileSheetOfFEET_shoes_brown;
-        costumeTiles.feet.walk.animFrames = 9;
+        tilesOfCostume.feet.walk.tileSheet = tileSheetOfFEET_shoes_brown;
+        tilesOfCostume.feet.walk.animFrames = 9;
         //*torso walk
         const tileSheetOfTORSO_leather_armor_torso = new Image();
         tileSheetOfTORSO_leather_armor_torso.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_torso.src = "tiles/walkcycle/TORSO_leather_armor_torso.png";
         //add propeties
-        costumeTiles.torso.walk.tileSheet = tileSheetOfTORSO_leather_armor_torso;
-        costumeTiles.torso.walk.animFrames = 9;
+        tilesOfCostume.torso.walk.tileSheet = tileSheetOfTORSO_leather_armor_torso;
+        tilesOfCostume.torso.walk.animFrames = 9;
         //*shoulders walk
         const tileSheetOfTORSO_leather_armor_shoulders = new Image();
         tileSheetOfTORSO_leather_armor_shoulders.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_shoulders.src = "tiles/walkcycle/TORSO_leather_armor_shoulders.png";
         //add propeties
-        costumeTiles.shoulders.walk.tileSheet = tileSheetOfTORSO_leather_armor_shoulders;
-        costumeTiles.shoulders.walk.animFrames = 9;
+        tilesOfCostume.shoulders.walk.tileSheet = tileSheetOfTORSO_leather_armor_shoulders;
+        tilesOfCostume.shoulders.walk.animFrames = 9;
         //*legs walk
         const tileSheetOfLEGS_pants_greenish = new Image();
         tileSheetOfLEGS_pants_greenish.addEventListener( 'load', itemLoaded , false );
         tileSheetOfLEGS_pants_greenish.src = "tiles/walkcycle/LEGS_pants_greenish.png";
         //add propeties
-        costumeTiles.legs.walk.tileSheet = tileSheetOfLEGS_pants_greenish;
-        costumeTiles.legs.walk.animFrames = 9;
+        tilesOfCostume.legs.walk.tileSheet = tileSheetOfLEGS_pants_greenish;
+        tilesOfCostume.legs.walk.animFrames = 9;
 
         //************** PLAYER COSTUME ATTACK
         //********************slash
@@ -481,107 +493,107 @@ function canvasApp()  {
         tileSheetOfBODY_human_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfBODY_human_attack.src = "tiles/slash/BODY_human.png";
         //add propeties
-        tilesBody.human.attack.slash.tileSheet = tileSheetOfBODY_human_attack;
-        tilesBody.human.attack.slash.animFrames = 6;
+        tilesOfBody.human.attack.slash.tileSheet = tileSheetOfBODY_human_attack;
+        tilesOfBody.human.attack.slash.animFrames = 6;
         //*body skeleton attack
         const tileSheetOfBody_skeleton_attack = new Image();
         tileSheetOfBody_skeleton_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfBody_skeleton_attack.src = "tiles/slash/BODY_skeleton.png";
         //add propeties
-        tilesBody.skeleton.attack.slash.tileSheet = tileSheetOfBody_skeleton_attack;
-        tilesBody.skeleton.attack.slash.animFrames = 6;
+        tilesOfBody.skeleton.attack.slash.tileSheet = tileSheetOfBody_skeleton_attack;
+        tilesOfBody.skeleton.attack.slash.animFrames = 6;
         //*head attack
         const tileSheetOfHEAD_chain_armor_helmet_attack = new Image();
         tileSheetOfHEAD_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfHEAD_chain_armor_helmet_attack.src = "tiles/slash/HEAD_chain_armor_helmet.png";
         //add propeties
-        costumeTiles.head.slash.tileSheet = tileSheetOfHEAD_chain_armor_helmet_attack;
-        costumeTiles.head.slash.animFrames = 6;
+        tilesOfCostume.head.slash.tileSheet = tileSheetOfHEAD_chain_armor_helmet_attack;
+        tilesOfCostume.head.slash.animFrames = 6;
         //*feet attack
         const tileSheetOfFEET_shoes_brown_attack = new Image();
         tileSheetOfFEET_shoes_brown_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfFEET_shoes_brown_attack.src = "tiles/slash/FEET_shoes_brown.png";
         //add propeties
-        costumeTiles.feet.slash.tileSheet = tileSheetOfFEET_shoes_brown_attack;
-        costumeTiles.feet.slash.animFrames = 6;
+        tilesOfCostume.feet.slash.tileSheet = tileSheetOfFEET_shoes_brown_attack;
+        tilesOfCostume.feet.slash.animFrames = 6;
         //*legs attack
         const tileSheetOfLEGS_pants_greenish_attack = new Image();
         tileSheetOfLEGS_pants_greenish_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfLEGS_pants_greenish_attack.src = "tiles/slash/LEGS_pants_greenish.png";
         //add propeties
-        costumeTiles.legs.slash.tileSheet = tileSheetOfLEGS_pants_greenish_attack;
-        costumeTiles.legs.slash.animFrames = 6;
+        tilesOfCostume.legs.slash.tileSheet = tileSheetOfLEGS_pants_greenish_attack;
+        tilesOfCostume.legs.slash.animFrames = 6;
         //*torso attack
         const tileSheetOfTORSO_leather_armor_torso_attack = new Image();
         tileSheetOfTORSO_leather_armor_torso_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_torso_attack.src = "tiles/slash/TORSO_leather_armor_torso.png";
         //add propeties
-        costumeTiles.torso.slash.tileSheet = tileSheetOfTORSO_leather_armor_torso_attack;
-        costumeTiles.torso.slash.animFrames = 6;
+        tilesOfCostume.torso.slash.tileSheet = tileSheetOfTORSO_leather_armor_torso_attack;
+        tilesOfCostume.torso.slash.animFrames = 6;
         //*bracers attack
         const tileSheetOfTORSO_leather_armor_bracers_attack = new Image();
         tileSheetOfTORSO_leather_armor_bracers_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_bracers_attack.src = "tiles/slash/TORSO_leather_armor_bracers.png";
         //add propeties
-        costumeTiles.bracers.slash.tileSheet = tileSheetOfTORSO_leather_armor_bracers_attack;
-        costumeTiles.bracers.slash.animFrames = 6;
+        tilesOfCostume.bracers.slash.tileSheet = tileSheetOfTORSO_leather_armor_bracers_attack;
+        tilesOfCostume.bracers.slash.animFrames = 6;
         //*shoulders attack
         const tileSheetOfTORSO_leather_armor_shoulders_attack = new Image();
         tileSheetOfTORSO_leather_armor_shoulders_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfTORSO_leather_armor_shoulders_attack.src = "tiles/slash/TORSO_leather_armor_shoulders.png";
         //add propeties
-        costumeTiles.shoulders.slash.tileSheet = tileSheetOfTORSO_leather_armor_shoulders_attack;
-        costumeTiles.shoulders.slash.animFrames = 6;
+        tilesOfCostume.shoulders.slash.tileSheet = tileSheetOfTORSO_leather_armor_shoulders_attack;
+        tilesOfCostume.shoulders.slash.animFrames = 6;
         //*********************************thrust
         //*body attack
         const thrustBODY_human_attack = new Image();
         thrustBODY_human_attack.addEventListener( 'load', itemLoaded , false );
         thrustBODY_human_attack.src = "tiles/thrust/BODY_animation.png";
         //add propeties
-        tilesBody.human.attack.thrust.tileSheet = thrustBODY_human_attack;
-        tilesBody.human.attack.thrust.animFrames = 8;
+        tilesOfBody.human.attack.thrust.tileSheet = thrustBODY_human_attack;
+        tilesOfBody.human.attack.thrust.animFrames = 8;
         //*head attack
         const thrustHEAD_chain_armor_helmet_attack = new Image();
         thrustHEAD_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
         thrustHEAD_chain_armor_helmet_attack.src = "tiles/thrust/HEAD_chain_armor_helmet.png";
         //add propeties
-        costumeTiles.head.thrust.tileSheet = thrustHEAD_chain_armor_helmet_attack;
-        costumeTiles.head.thrust.animFrames = 8;
+        tilesOfCostume.head.thrust.tileSheet = thrustHEAD_chain_armor_helmet_attack;
+        tilesOfCostume.head.thrust.animFrames = 8;
         //*feet attack
         const thrustFEET_shoes_brown_attack = new Image();
         thrustFEET_shoes_brown_attack.addEventListener( 'load', itemLoaded , false );
         thrustFEET_shoes_brown_attack.src = "tiles/thrust/FEET_shoes_brown.png";
         //add propeties
-        costumeTiles.feet.thrust.tileSheet = thrustFEET_shoes_brown_attack;
-        costumeTiles.feet.thrust.animFrames = 8;
+        tilesOfCostume.feet.thrust.tileSheet = thrustFEET_shoes_brown_attack;
+        tilesOfCostume.feet.thrust.animFrames = 8;
         //*legs attack
         const thrustLEGS_pants_greenish_attack = new Image();
         thrustLEGS_pants_greenish_attack.addEventListener( 'load', itemLoaded , false );
         thrustLEGS_pants_greenish_attack.src = "tiles/thrust/LEGS_pants_greenish.png";
         //add propeties
-        costumeTiles.legs.thrust.tileSheet = thrustLEGS_pants_greenish_attack;
-        costumeTiles.legs.thrust.animFrames = 8;
+        tilesOfCostume.legs.thrust.tileSheet = thrustLEGS_pants_greenish_attack;
+        tilesOfCostume.legs.thrust.animFrames = 8;
         //*torso attack
         const thrustTORSO_leather_armor_torso_attack = new Image();
         thrustTORSO_leather_armor_torso_attack.addEventListener( 'load', itemLoaded , false );
         thrustTORSO_leather_armor_torso_attack.src = "tiles/thrust/TORSO_leather_armor_torso.png";
         //add propeties
-        costumeTiles.torso.thrust.tileSheet = thrustTORSO_leather_armor_torso_attack;
-        costumeTiles.torso.thrust.animFrames = 8;
+        tilesOfCostume.torso.thrust.tileSheet = thrustTORSO_leather_armor_torso_attack;
+        tilesOfCostume.torso.thrust.animFrames = 8;
         //*bracers attack
         const thrustTORSO_leather_armor_bracers_attack = new Image();
         thrustTORSO_leather_armor_bracers_attack.addEventListener( 'load', itemLoaded , false );
         thrustTORSO_leather_armor_bracers_attack.src = "tiles/thrust/TORSO_leather_armor_bracers.png";
         //add propeties
-        costumeTiles.bracers.thrust.tileSheet = thrustTORSO_leather_armor_bracers_attack;
-        costumeTiles.bracers.thrust.animFrames = 8;
+        tilesOfCostume.bracers.thrust.tileSheet = thrustTORSO_leather_armor_bracers_attack;
+        tilesOfCostume.bracers.thrust.animFrames = 8;
         //*shoulders attack
         const thrustTORSO_leather_armor_shoulders_attack = new Image();
         thrustTORSO_leather_armor_shoulders_attack.addEventListener( 'load', itemLoaded , false );
         thrustTORSO_leather_armor_shoulders_attack.src = "tiles/thrust/TORSO_leather_armor_shoulders.png";
         //add propeties
-        costumeTiles.shoulders.thrust.tileSheet = thrustTORSO_leather_armor_shoulders_attack;
-        costumeTiles.shoulders.thrust.animFrames = 8;
+        tilesOfCostume.shoulders.thrust.tileSheet = thrustTORSO_leather_armor_shoulders_attack;
+        tilesOfCostume.shoulders.thrust.animFrames = 8;
         
 
         //************** WEAPON
@@ -591,22 +603,22 @@ function canvasApp()  {
         tileSheetOfWEAPON_dagger.addEventListener( 'load', itemLoaded , false );
         tileSheetOfWEAPON_dagger.src = "tiles/slash/WEAPON_dagger.png";
         //add propeties
-        tilesDagger.attack.tileSheet = tileSheetOfWEAPON_dagger;
-        tilesDagger.attack.animFrames = 6;
+        tilesOfCostume.dagger.attack.tileSheet = tileSheetOfWEAPON_dagger;
+        tilesOfCostume.dagger.attack.animFrames = 6;
         //*shield
         const tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack = new Image();
         tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack.addEventListener( 'load', itemLoaded , false );
         tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack.src = "tiles/thrust/WEAPON_shield_cutout_chain_armor_helmet.png";
         //add propeties
-        tilesShield.attack.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack;
-        tilesShield.attack.animFrames = 8;
+        tilesOfCostume.shield.attack.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet_attack;
+        tilesOfCostume.shield.attack.animFrames = 8;
         //*spear
         const tileSheetOfWEAPON_spear = new Image();
         tileSheetOfWEAPON_spear.addEventListener( 'load', itemLoaded , false );
         tileSheetOfWEAPON_spear.src = "tiles/thrust/WEAPON_spear.png";
         //add propeties
-        tilesSpear.attack.tileSheet = tileSheetOfWEAPON_spear;
-        tilesSpear.attack.animFrames = 8;
+        tilesOfCostume.spear.attack.tileSheet = tileSheetOfWEAPON_spear;
+        tilesOfCostume.spear.attack.animFrames = 8;
 
         //***** walk
         //*shield
@@ -614,8 +626,8 @@ function canvasApp()  {
         tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
         tileSheetOfWEAPON_shield_cutout_chain_armor_helmet.src = "tiles/walkcycle/WEAPON_shield_cutout_chain_armor_helmet.png";
         //add propeties
-        tilesShield.walk.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet;
-        tilesShield.walk.animFrames = 9;
+        tilesOfCostume.shield.walk.tileSheet = tileSheetOfWEAPON_shield_cutout_chain_armor_helmet;
+        tilesOfCostume.shield.walk.animFrames = 9;
         //*quiver
         const tileSheetOfBEHIND_quiver = new Image();
         tileSheetOfBEHIND_quiver.addEventListener( 'load', itemLoaded , false );
@@ -735,7 +747,7 @@ function canvasApp()  {
         }
         //console.log( result );
        // console.log( layers );
-        console.log( collisionsObjects );
+        //console.log( collisionsObjects );
     }
 
     function gameStateTitle() {
@@ -779,22 +791,24 @@ function canvasApp()  {
             x: placesSpawnPlayer[0].x,
             y: placesSpawnPlayer[0].y
         }
-        
+
         //*spawns
-        player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); //{swordman: []}
-        //console.log( player );
+        //player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); //{swordman: []}
+        player = new HUMAN( tilesOfBody, tilesOfCostume, 'swordman', pointSpawnPlayer, true, true, false ); //{swordman: []}
+
+        console.log( player );
 
         const pointsSpawnNPC = getPointsSpawnNPC();
         //console.log(  pointsSpawnNPC);
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
 
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
-            enemys[i] = new SKELETON( tilesBody, costumes, 'swordman', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
+            //enemys[i] = new SKELETON( tilesBody, costumes, 'swordman', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
         }
 
         //console.log( enemys );
         console.log( costumes );
-        console.log( costumeTiles );
+        console.log( tilesOfCostume );
         staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], costumes, 'spearman', 250, 100, true );
         //console.log( staticNPC );
         //console.log( tilesBody );
