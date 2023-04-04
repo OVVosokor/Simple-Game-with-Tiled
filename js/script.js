@@ -796,20 +796,20 @@ function canvasApp()  {
         //player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); //{swordman: []}
         player = new HUMAN( tilesOfBody, tilesOfCostume, 'swordman', pointSpawnPlayer, true, true, false ); //{swordman: []}
 
-        console.log( player );
+        //console.log( player );
 
         const pointsSpawnNPC = getPointsSpawnNPC();
         //console.log(  pointsSpawnNPC);
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
-
+        //console.log(pointsSpawnNonStaticNPC);
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
-            //enemys[i] = new SKELETON( tilesBody, costumes, 'swordman', pointsSpawnNonStaticNPC[i].x, pointsSpawnNonStaticNPC[i].y, false, true );
+            enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, true );
         }
 
         //console.log( enemys );
-        console.log( costumes );
-        console.log( tilesOfCostume );
-        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], costumes, 'spearman', 250, 100, true );
+        //console.log( costumes );
+        //console.log( tilesOfCostume );
+        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], tilesOfCostume, 'spearman', 250, 100, true );
         //console.log( staticNPC );
         //console.log( tilesBody );
         console.log('create play field');
