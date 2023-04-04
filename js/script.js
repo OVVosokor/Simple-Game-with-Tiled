@@ -68,7 +68,7 @@ function canvasApp()  {
 
 	//* loading
     let loadCount = 0;
-    const itemsToLoad = 33;
+    const itemsToLoad = 41;
     let requestURL_map; 
     let request_map; 
     let requestURL_tiles; 
@@ -139,20 +139,7 @@ function canvasApp()  {
         summary: []
     };
     //************ tiles objects
-    //*slash tiles
     //*body tiles
-    /*
-    const tilesBody = {
-        titleTiles: 'body',
-        human: {
-            walk: {},
-            attack: {}
-        },
-        skeleton: {
-            walk: {},
-            attack: {}
-        }
-    };*/
     const tilesOfBody = {
         titleTiles: 'body',
         human: {
@@ -160,107 +147,16 @@ function canvasApp()  {
             attack: {
                 slash: {},
                 thrust: {}
-            }
+            },
+            hurt: {}
         },
         skeleton: {
             walk: {},
             attack: {
                 slash: {}
-            }
+            },
+            hurt: {}
         }
-    };
-
-    const tilesHead = {
-        titleTiles: 'head',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesFeet = {
-        titleTiles: 'feet',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesLegs = {
-        titleTiles: 'legs',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesTorso = {
-        titleTiles: 'torso',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesBracers = {
-        titleTiles: 'bracers',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesShoulders = {
-        titleTiles: 'shoulders',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    //*thrust tiles
-    const tilesHeadThrust = {
-        titleTiles: 'head',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesFeetThrust = {
-        titleTiles: 'feet',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesLegsThrust = {
-        titleTiles: 'legs',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesTorsoThrust = {
-        titleTiles: 'torso',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesBracersThrust = {
-        titleTiles: 'bracers',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    const tilesShouldersThrust = {
-        titleTiles: 'shoulders',
-        type: 'clothes',
-        walk: {},
-        attack: {}
-    };
-    //*weapons tiles
-    const tilesDagger = {
-        titleTiles: 'dagger',
-        type: 'weapon',
-        walk: {},
-        attack: {}
-    };
-    const tilesSpear = {
-        titleTiles: 'spear',
-        type: 'weapon',
-        walk: {},
-        attack: {}
-    };
-    const tilesShield = {
-        titleTiles: 'shield',
-        type: 'weapon',
-        walk: {},
-        attack: {}
     };
     const tilesQuiver = {
         titleTiles: 'quiver',
@@ -280,55 +176,42 @@ function canvasApp()  {
         type: 'putOn',
         idle: {}
     };
-    //*
-    const slashTiles = {
-        //body: tilesBody,
-        head: tilesHead,
-        feet: tilesFeet,
-        legs: tilesLegs,
-        torso: tilesTorso,
-        bracers: tilesBracers,
-        shoulders: tilesShoulders
-    };
-    const thrustTiles = {
-        //body: tilesBodyThrust,
-        head: tilesHeadThrust,
-        feet:tilesFeetThrust,
-        legs: tilesLegsThrust,
-        torso: tilesTorsoThrust,
-        bracers: tilesBracersThrust,
-        shoulders: tilesShouldersThrust
-    };
     const tilesOfCostume = {
         head: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         feet: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         legs: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         torso: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         bracers: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         shoulders: {
             walk: {},
             slash: {},
-            thrust: {}
+            thrust: {},
+            hurt: {}
         },
         dagger: {
             walk: {},
@@ -343,23 +226,12 @@ function canvasApp()  {
             attack: {}    
         }
     };
-    //* costumes
-    const namesCostumes = {
-        swordman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'dagger' ],
-        spearman: [ 'head', 'feet', 'legs', 'torso', 'bracers', 'shoulders', 'shield', 'spear' ]
-    };
-    const costumes = {
-        swordman: [ 'swordman',/* slash.body ,*/ slashTiles.head, slashTiles.feet, slashTiles.legs, slashTiles.torso, slashTiles.bracers, slashTiles.shoulders, [tilesDagger], namesCostumes ],
-        spearman: [ 'spearman', /*thrust.body ,*/ thrustTiles.head, thrustTiles.feet, thrustTiles.legs, thrustTiles.torso, thrustTiles.bracers, thrustTiles.shoulders, [tilesShield, tilesSpear], namesCostumes ]
-    };
-
     //const costumeInteractingNPC = [ tilesDummy ];
     //const costumesPutOnNPC = [ tilesShieldSpear ];
     const costumesStaticNPC = {
         interacting: [ tilesDummy ],
         putOn: [ tilesShieldSpear ]
     }
-    //const costumeBody = [ 'costume Body' ];
 
     function switchGameState( newState ) {
 
@@ -427,7 +299,7 @@ function canvasApp()  {
         tileSheetOfMap.addEventListener( 'load', itemLoaded , false );
         tileSheetOfMap.src = "tiles/tmw_desert_spacing.png";
 
-        //************** PLAYER COSTUME WALK
+        //************** COSTUME WALK
         //*body walk
         const tileSheetOfWalks = new Image();
         tileSheetOfWalks.addEventListener( 'load', itemLoaded , false );
@@ -435,6 +307,8 @@ function canvasApp()  {
         //add propeties
         tilesOfBody.human.walk.tileSheet = tileSheetOfWalks;
         tilesOfBody.human.walk.animFrames = 9;
+        tilesOfBody.human.walk.title = 'body walk';
+
         //*body skeleton walk
         const tileSheetOfBody_skeleton = new Image();
         tileSheetOfBody_skeleton.addEventListener( 'load', itemLoaded , false );
@@ -449,6 +323,7 @@ function canvasApp()  {
         //add propeties
         tilesOfCostume.head.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
         tilesOfCostume.head.walk.animFrames = 9;
+        tilesOfCostume.head.walk.title = 'head walk';
         //costumeTiles.head.walk.tileSheet = tileSheetOfHEAD_chain_armor_helmet;
         //*bracers walk
         const tileSheetOfTORSO_leather_armor_bracers = new Image();
@@ -486,7 +361,7 @@ function canvasApp()  {
         tilesOfCostume.legs.walk.tileSheet = tileSheetOfLEGS_pants_greenish;
         tilesOfCostume.legs.walk.animFrames = 9;
 
-        //************** PLAYER COSTUME ATTACK
+        //************** COSTUME ATTACK
         //********************slash
         //*body attack
         const tileSheetOfBODY_human_attack = new Image();
@@ -509,6 +384,8 @@ function canvasApp()  {
         //add propeties
         tilesOfCostume.head.slash.tileSheet = tileSheetOfHEAD_chain_armor_helmet_attack;
         tilesOfCostume.head.slash.animFrames = 6;
+        tilesOfCostume.head.slash.title = 'head attack';
+
         //*feet attack
         const tileSheetOfFEET_shoes_brown_attack = new Image();
         tileSheetOfFEET_shoes_brown_attack.addEventListener( 'load', itemLoaded , false );
@@ -544,7 +421,7 @@ function canvasApp()  {
         //add propeties
         tilesOfCostume.shoulders.slash.tileSheet = tileSheetOfTORSO_leather_armor_shoulders_attack;
         tilesOfCostume.shoulders.slash.animFrames = 6;
-        //*********************************thrust
+        //******************thrust
         //*body attack
         const thrustBODY_human_attack = new Image();
         thrustBODY_human_attack.addEventListener( 'load', itemLoaded , false );
@@ -594,6 +471,66 @@ function canvasApp()  {
         //add propeties
         tilesOfCostume.shoulders.thrust.tileSheet = thrustTORSO_leather_armor_shoulders_attack;
         tilesOfCostume.shoulders.thrust.animFrames = 8;
+        //************** COSTUME HURT
+        //*body hrt
+        const BODY_male = new Image();
+        BODY_male.addEventListener( 'load', itemLoaded , false );
+        BODY_male.src = "tiles/hurt/BODY_male.png";
+        //add propeties
+        tilesOfBody.human.hurt.tileSheet = BODY_male;
+        tilesOfBody.human.hurt.animFrames = 6;
+        tilesOfBody.human.hurt.title = 'body hurt';
+
+        //*body skeleton hurt
+        const BODY_skeleton = new Image();
+        BODY_skeleton.addEventListener( 'load', itemLoaded , false );
+        BODY_skeleton.src = "tiles/hurt/BODY_skeleton.png";
+        //add propeties
+        tilesOfBody.skeleton.hurt.tileSheet = BODY_skeleton;
+        tilesOfBody.skeleton.hurt.animFrames = 6;
+        //*head hurt
+        const HEAD_chain_armor_helmet = new Image();
+        HEAD_chain_armor_helmet.addEventListener( 'load', itemLoaded , false );
+        HEAD_chain_armor_helmet.src = "tiles/hurt/HEAD_chain_armor_helmet.png";
+        //add propeties
+        tilesOfCostume.head.hurt.tileSheet = HEAD_chain_armor_helmet;
+        tilesOfCostume.head.hurt.animFrames = 6;
+        tilesOfCostume.head.hurt.title = 'head hurt';
+        //*bracers hurt
+        const TORSO_leather_armor_bracers = new Image();
+        TORSO_leather_armor_bracers.addEventListener( 'load', itemLoaded , false );
+        TORSO_leather_armor_bracers.src = "tiles/hurt/TORSO_leather_armor_bracers.png";
+        //add propeties
+        tilesOfCostume.bracers.hurt.tileSheet = TORSO_leather_armor_bracers;
+        tilesOfCostume.bracers.hurt.animFrames = 6;
+        //*feet hurt
+        const FEET_shoes_brown = new Image();
+        FEET_shoes_brown.addEventListener( 'load', itemLoaded , false );
+        FEET_shoes_brown.src = "tiles/hurt/FEET_shoes_brown.png";
+        //add propeties
+        tilesOfCostume.feet.hurt.tileSheet = FEET_shoes_brown;
+        tilesOfCostume.feet.hurt.animFrames = 6;
+        //*torso hurt
+        const TORSO_leather_armor_torso = new Image();
+        TORSO_leather_armor_torso.addEventListener( 'load', itemLoaded , false );
+        TORSO_leather_armor_torso.src = "tiles/hurt/TORSO_leather_armor_torso.png";
+        //add propeties
+        tilesOfCostume.torso.hurt.tileSheet = TORSO_leather_armor_torso;
+        tilesOfCostume.torso.hurt.animFrames = 6;
+        //*shoulders hurt
+        const TORSO_leather_armor_shoulders = new Image();
+        TORSO_leather_armor_shoulders.addEventListener( 'load', itemLoaded , false );
+        TORSO_leather_armor_shoulders.src = "tiles/hurt/TORSO_leather_armor_shoulders.png";
+        //add propeties
+        tilesOfCostume.shoulders.hurt.tileSheet = TORSO_leather_armor_shoulders;
+        tilesOfCostume.shoulders.hurt.animFrames = 6;
+        //*legs hurt
+        const LEGS_pants_greenish = new Image();
+        LEGS_pants_greenish.addEventListener( 'load', itemLoaded , false );
+        LEGS_pants_greenish.src = "tiles/hurt/LEGS_pants_greenish.png";
+        //add propeties
+        tilesOfCostume.legs.hurt.tileSheet = LEGS_pants_greenish;
+        tilesOfCostume.legs.hurt.animFrames = 6;
         
 
         //************** WEAPON
@@ -803,12 +740,12 @@ function canvasApp()  {
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
-            enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, true );
+            //enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, true );
         }
 
         //console.log( enemys );
         //console.log( costumes );
-        //console.log( tilesOfCostume );
+        console.log( tilesOfCostume );
         staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], tilesOfCostume, 'spearman', 250, 100, true );
         //console.log( staticNPC );
         //console.log( tilesBody );
@@ -1092,7 +1029,9 @@ function canvasApp()  {
                 //window.isPressKey = isPressKey
                 pressesKeys.add( e.code );
                 break;
-    
+            case 'KeyA':
+                pressesKeys.add( e.code );
+                break;
             }
     }
     function keyUpHandler( e ) {
@@ -1126,6 +1065,10 @@ function canvasApp()  {
                 //window.isPressKey = isPressKey
                 pressesKeys.delete( e.code );
                 break;
+            case 'KeyA':
+                pressesKeys.delete( e.code );
+                break;
+    
         }
     }
 
