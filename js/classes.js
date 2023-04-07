@@ -43,7 +43,8 @@ class NONSTATIC {
         this.sourceDY = 0; //128
         this.moveMode = 'idle'; //run
         this.isAnimate = false;
-        this.isDied = false;
+        this.isHurt = false;
+        this.frameIndexCounter = {} //new FrameRateCounter(100);
     }
     //*check collide
     boundingObjectCollide( object1, object2 ) {
@@ -68,14 +69,15 @@ class NONSTATIC {
     //*draw
     draw() {
         //console.log( this.isAnimate );
+        //console.log( this, this.isHurt, this.frameIndex );
         let animationFrames = [];
-        frameIndexCounter.delay = this.delay;
+        this.frameIndexCounter.delay = this.delay;
 
         for ( let i = 0; i < this.tileObject.animFrames; i++ ) {
             animationFrames.push( i );
         }
         //console.log( this.tileObject );
-        console.log( animationFrames );
+        //console.log( animationFrames );
         let sourceX = Math.floor( animationFrames[ this.frameIndex ] % this.tileObject.animFrames ) * 64;
         let sourceY = Math.floor( animationFrames[ this.frameIndex ] / this.tileObject.animFrames ) * 64;
        // console.log( typeof this.tileSheet );
@@ -83,14 +85,18 @@ class NONSTATIC {
         //console.log( this.sourceDY );
         //console.log( sourceX, sourceY , this.x, this.y );
         
-        if ( this.isAnimate ) { //this.moveMode === 'run'
-            //console.log( this.moveMode );
-            this.frameIndex = frameIndexCounter.frameIndex;
+        if ( this.isAnimate ) { 
+            this.frameIndex = this.frameIndexCounter.frameIndex;
             //console.log( this.frameIndex );
             //console.log( frameIndexCounter );
-            if ( this.frameIndex === animationFrames.length && this.isDied ) {
-                this.frameIndex = 5;
-                frameIndexCounter.frameIndex = 5;
+            if ( this.frameIndex === animationFrames.length ) {
+                if ( this.isHurt ) {
+                    this.frameIndex = 5;
+                    this.frameIndexCounter.frameIndex = 5;
+                }else{
+                    this.frameIndex = 0;
+                    this.frameIndexCounter.frameIndex = 0;
+                }
             }
         }else{
             this.frameIndex = 0;
@@ -150,7 +156,7 @@ class HUMAN extends HOMO_SAPIENS {
 
         //console.log( tilesOfCostume );
         //console.log( tilesOfBody );
-        console.log( typeOfCostume );
+        //console.log( typeOfCostume );
         //*coords
         this.width = 64;
         this.height = 64;
@@ -169,22 +175,33 @@ class HUMAN extends HOMO_SAPIENS {
         this.tempCostume = [];
         this.currentCostume = [];
         this.sourceDY = 128; 
-        this.moveMode = 'idle';
-        this.isAnimate = false;
         //*name
         this.name = '';
         //*booles
+        this.isAnimate = false;
         this.isAttack = false;
-        this.isCheckForAttack = false;
+        this.isNotAttack = true; //!! necessary?
         this.isPlayer = isPlayer;
         this.visible = visible;
         this.isOnlyBody = isOnlyBody;
-        this.isDied = false;
+        this.isHurt = false;
         //*life
         this.life = 100;
+        //*damage
+        this.damage = {
+            power: 1,
+            width: 60,
+            height: 60,
+            area: {}
+        }
+        //*attacked actor
+        this.attacked = {};
+        this.frameIndexCounter = {}// new FrameRateCounter(100);
 
         //*type
         if ( isPlayer && typeOfCostume !== 'hurt' ) {
+            this.frameIndexCounter = new FrameRateCounter(100);
+
             //*set coords
             this.x = coordsOfSpawn.x;
             this.y = coordsOfSpawn.y;
@@ -192,29 +209,35 @@ class HUMAN extends HOMO_SAPIENS {
             this.typeOfBody = 'human';
             //*create collision body 
             this.createCollisionBody();
+            //*create damage area
+            this.createDamageArea();
             //*create lifeBar
             this.createLifeBar();
             //*create weapon and costumes
             this.getCurrentCostume( this.tilesOfCostume, this.typeOfCostume, this.typeOfBody );
             console.log('set type of body = human');
         }else{
-            console.log('incorrect var: isPlayer / typeOfCostume');
+            //console.log('incorrect var: isPlayer / typeOfCostume');
         }
     }   
 
     createCollisionBody() {
-        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15, { isStatic: true } );
+        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15/*, { isStatic: true }*/ );
         //console.log( this.body );
     }
 
     createLifeBar() {
-        this.lifeBar = new LIFEBAR( this.x , this.y );
+        this.lifeBar = new LIFEBAR( this.x , this.y, this.life );
         // console.log( this.lifeBar );
     }
 
+    createDamageArea() {
+        this.damage.area = new DAMAGE_AREA( this.x+32 , this.y+32, this.damage.width, this.damage.height/*, { isStatic: true }*/ /* this.damage.radius*/ );
+    }
+
     getCurrentCostume( tilesOfCostume, typeOfCostume, typeOfBody ) {
-        console.log( tilesOfCostume );
-        console.log( typeOfCostume );
+        //console.log( tilesOfCostume );
+        //console.log( typeOfCostume );
         //console.log( typeOfBody );
 
         //*set defaults
@@ -234,20 +257,20 @@ class HUMAN extends HOMO_SAPIENS {
             };
             //*get list of name costumes
             let nameCostume = namesCostumes[ typeOfCostume ];
-            console.log( nameCostume );
+            //console.log( nameCostume );
             //*get start costume
             let startCostume = [];
             for ( const item of nameCostume ) {
                 if ( typeof item === 'string' ) {
-                    console.log(item);
+                    //console.log(item);
                     let tempCostume = tilesOfCostume[ item ];
                     startCostume.push( tempCostume );
                 }
             }
-            console.log( startCostume );
+            //console.log( startCostume );
             //*get weapons array
             let nameWeapons = nameCostume[ nameCostume.length - 1 ];
-            console.log(nameWeapons);
+            //console.log(nameWeapons);
             //*get weapon tile
             for ( const weapon of nameWeapons ) {
                 if ( typeof weapon === 'string' ) {
@@ -259,7 +282,7 @@ class HUMAN extends HOMO_SAPIENS {
                     this.currentWeapons.push( currentWeapon );
                 }
             }
-            console.log( this.currentWeapons );
+            //console.log( this.currentWeapons );
 
             //*create Clothes object
             for ( let i = 0; i < nameCostume.length-1; i++ ) {
@@ -275,7 +298,7 @@ class HUMAN extends HOMO_SAPIENS {
         }
 
         this.currentCostume = this.currentCostume.concat( this.currentWeapons ) ;
-        console.log( this.currentCostume );
+        //console.log( this.currentCostume );
 
         //*****************load tiles
         //*load walk tiles
@@ -319,24 +342,26 @@ class HUMAN extends HOMO_SAPIENS {
                 this.tilesToRenderHurt.push( this.currentCostume[i].tilesToRenderHurt );
             }
         }
-        console.log( this.tilesToRenderWalk );
-        console.log( this.tilesToRenderAttack );
-        console.log( this.tilesToRenderHurt );
+        //console.log( this.tilesToRenderWalk );
+        //console.log( this.tilesToRenderAttack );
+        //console.log( this.tilesToRenderHurt );
         console.log('current costume is loading');
     }
 
     //*render
     render() {
         if ( this.visible ) {
-            if ( this.life > 0 && this.life <= 100 ) {
+            //*if isHurt = false
+            if ( !this.isHurt ) { 
+                //*if isAttack = false
                 if ( !this.isAttack ) {
                     for ( this.tileObject of this.tilesToRenderWalk ) {
-                        //console.log( this.tileObject.tileSheet  );
                         if ( typeof this.tileObject === 'object' && this.tileObject.hasOwnProperty( 'tileSheet' ) && this.tileObject.visible ) {
                             super.draw();
                         }
                     }
                 }else{
+                    //*if isAttack = true
                     for ( this.tileObject of this.tilesToRenderAttack ) {
                         if ( typeof this.tileObject === 'object' && this.tileObject.visible ) {
                             super.draw();
@@ -344,9 +369,9 @@ class HUMAN extends HOMO_SAPIENS {
                     }
                 }
             }else{
+                //*if isHurt = true
                 for ( this.tileObject of this.tilesToRenderHurt ) {
                     if ( typeof this.tileObject === 'object' && this.tileObject.visible ) {
-                        //console.log('!');
                         super.draw();
                     }
                 }
@@ -354,6 +379,8 @@ class HUMAN extends HOMO_SAPIENS {
             this.renderLifeBar();
 
             this.renderCollision();
+
+            this.renderDamageArea();
         }
     }
 
@@ -367,28 +394,47 @@ class HUMAN extends HOMO_SAPIENS {
         this.lifeBar.render();
     }
 
+    //*render damage area
+    renderDamageArea() {
+        this.damage.area.render();
+    }
+
     //**to Attack
     toAttack() {
         if ( !this.isOnlyBody ) {
-            console.log('human attack');
+            //console.log('human attack');
+
             this.isAttack = true;
-            this.moveMode = 'run';
+            this.isNotAttack = false;
             this.isAnimate = true;
+            //console.log( this );
+            if ( this.attacked.actorB !== undefined && this.attacked.actorB.life > 0 && this.attacked.actorB.life <= 100 ) {
+                //console.log( this.attacked );
+                this.attacked.actorB.life -= this.damage.power;
+            }
         }
+    }
+
+    getAttackedActor( obj ) {
+        this.attacked = obj;
+        //console.log( this, this.attacked );
     }
 
     setNewWeapon( obj ) {
         //console.log( obj );
         //console.log( obj.store, obj.type );
-        this.getCurrentCostume( obj.store, obj.type, this.typeOfBody );
+        this.isOnlyBody = false;
+        this.getCurrentCostume( obj.actorB.store, obj.actorB.type, this.typeOfBody );
+        //console.log( obj.normal );
         console.log('set new Weapon');
     }
 
     //*check keys
     update() {
+        this.frameIndexCounter.countFrames()
         if ( this.isPlayer ) {
-
-            if ( pressesKeys.size > 0 && this.isPlayer ) {
+            
+            if ( pressesKeys.size > 0 && this.isPlayer && !this.isHurt ) {
              //console.log( pressesKeys ); 
                 for ( const code of pressesKeys.values() ) {
                     switch ( code ) {
@@ -396,78 +442,76 @@ class HUMAN extends HOMO_SAPIENS {
                             this.sourceDY = 0;
                             this.dx = 0;
                             this.dy = -1;
-                            this.moveMode = 'run';
                             this.isAnimate = true;
                             break;
                         case 'ArrowLeft':
                             this.sourceDY = 64;
                             this.dx = -1;
                             this.dy = 0;
-                            this.moveMode = 'run';
                             this.isAnimate = true;
                             break;
                         case 'ArrowDown':
                             this.sourceDY = 128;
                             this.dx = 0;
                             this.dy = 1;
-                            this.moveMode = 'run';
                             this.isAnimate = true;
                             break;
                         case 'ArrowRight':
                             this.sourceDY = 192;
                             this.dx = 1;
                             this.dy = 0;
-                            this.moveMode = 'run';
                             this.isAnimate = true;
                             break;
                         case 'Space':
                             this.toAttack();
-                            //this.moveMode = 'run';
-                            //this.isAnimate = true;
                             break;
+                            /*
                         case 'KeyA':
                             console.log('key A');
-                            this.sourceDY = 0;
-                            //this.isAnimate = true;
-                        //this.frameIndex = 6
-                            this.life -= 10;
-                            console.log( this.life );
-                            break;
+                            if ( this.life > 0 && this.life <= 100 ) {
+                                this.life -= 10;
+                                this.lifeBar.currentLife = this.life;
+                                console.log( this.life );
+                            }
+                            break;*/
                     }
                 }
-                
-                //console.log( this.x, this.y );
                 if ( !pressesKeys.has( 'Space' ) && !pressesKeys.has( 'KeyE' ) ) {
                     this.x = this.x + this.dx;
                     this.y = this.y + this.dy;
                     this.lifeBar.x = this.x + this.dx;
                     this.lifeBar.y = this.y + this.dy;
                     Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+37 } );
-                    this.isAttack = false;
-                    //console.log( this.x, this.y );
-                    //console.log( pressesKeys );
-                    //console.log( this.isAttack );
+                    Body.setPosition( this.damage.area.hull, { x: this.x+32, y: this.y+32 } );
                 }
             }else{
-                this.moveMode = 'idle';
                 this.isAnimate = false;
                 this.isAttack = false;
-                if ( this.life <=0 ) {
-                    this.isAnimate = true;
-                    this.isDied = true
+                this.isNotAttack = true;
 
+                if ( this.life <= 0 ) {
+                    //console.log('!');
+                    
+                    if ( !this.isHurt ) {
+                        console.log( this );
+                        this.sourceDY = 0;
+                        this.isHurt = true;
+                        this.lifeBar.x = this.x;
+                        this.lifeBar.y = this.y;
+                        Body.setPosition( this.body.hull, { x: 100, y: 100 } );
+                        Body.setPosition( this.damage.area.hull, { x: 100, y: 100 } );
+                    }
+                    this.isAnimate = true;
                 }
-                //console.log( this.isAttack );
-                //console.log( pressesKeys );
             }
+            this.lifeBar.currentLife = this.life;
         }
     }
-
 }
 
 class CLOTHES {
     constructor( tilesOfCostume, typeOfCostume, typeOfClothes, x, y, visible ) {
-        console.log( tilesOfCostume, typeOfClothes );
+        //console.log( tilesOfCostume, typeOfClothes );
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
@@ -745,16 +789,25 @@ class SKELETON extends HUMAN {
         this.tempCostume = [];
         this.currentCostume = [];
         this.sourceDY = 128; 
-        this.moveMode = 'idle';
-        this.isAnimate = false;
         //*booles
         this.isAttack = false;
-        this.isCheckForAttack = false;
+        this.isAnimate = false;
+        this.isNotAttack = true; //!! necessary?
         this.isPlayer = isPlayer;
         this.visible = visible;
         this.isOnlyBody = isOnlyBody;
+        this.isHurt = false;
         //*life
         this.life = 100;
+        //*damage
+        this.damage = {
+            power: 0.1,
+            width: 60,
+            height: 60,
+            area: {}
+        }
+        this.frameIndexCounter = new FrameRateCounter(100);
+        //console.log( this.frameIndexCounter );
         //*type
         if ( !isPlayer ) {
             //*set coords
@@ -764,6 +817,8 @@ class SKELETON extends HUMAN {
             this.typeOfBody = 'skeleton';
             //*create collision body
             this.createCollisionBody();
+            //*create damage area
+            this.createDamageArea();
             //*create lifeBar
             this.createLifeBar();
             //*create costumes and weapon
@@ -777,8 +832,12 @@ class SKELETON extends HUMAN {
         //console.log( this.body );
     }
 
+    createDamageArea() {
+        super.createDamageArea();
+    }
+
     createLifeBar() {
-        super.createLifeBar();
+        super.createLifeBar( this.x , this.y, this.life );
         // console.log( this.lifeBar );
     }
 
@@ -789,46 +848,134 @@ class SKELETON extends HUMAN {
     //*render
     render() {
         super.render();
+        this.createLifeBar();
     }
 
-    //**to Attack
-    toAttack() {
-       // console.log('skeleton attack');
-        //this.isAttack = true;
+    //*to attack
+    toAttack( tempObj ) {
         if ( !this.isOnlyBody ) {
-            console.log('human attack');
-            this.isAttack = true;
-            this.moveMode = 'run';
-            this.isAnimate = true;
-        }
+            console.log('skeleton attack');
+            if ( !this.isHurt ) {
+                //console.log( this.frameIndexCounter );
 
+            this.isAttack = true;
+            this.isNotAttack = false;
+            //if ( !this.isHurt ) {
+                this.setSourceDY( tempObj.normal );
+            }
+            if ( tempObj.actorA.life > 0 && tempObj.actorA.life <= 100 ) {
+                //console.log( tempObj );
+                tempObj.actorA.life -= this.damage.power;
+            }
+        }
+    }
+
+    toNotAttack() {
+        if ( !this.isOnlyBody ) {
+            console.log('skeleton not attack');
+            this.isAttack = false;
+            this.isNotAttack = true;
+        }
+    }
+
+    setSourceDY( normal ) {
+        switch ( normal.x ) {
+            case -1: 
+                this.sourceDY = 64;
+                break;
+            case 1:
+                this.sourceDY = 192;
+                break;
+            }
+        switch ( normal.y ) {
+            case -1:
+                this.sourceDY = 0;
+                break;
+            case 1:
+                this.sourceDY = 128;
+                break;
+            }
     }
 
     //*check keys
     update() {
+        super.update()
+        if ( !this.isHurt ) {
+            if ( !this.isAttack ) {
+                //if ( this.isAnimate ) {
+                    this.isAnimate = false;
+                //}
+            }else
+                if ( this.isAttack ) {
+                    
+                    this.isAnimate = true;
+                }
+            if ( this.life <=0 && !this.isHurt ) {
+                this.isHurt = true;
+                this.isAttack = false;
+                this.sourceDY = 0;
+                this.lifeBar.x = this.x;
+                this.lifeBar.y = this.y;
+                Body.setPosition( this.body.hull, { x: 500+ this.x, y: 100+this.y } );
+                Body.setPosition( this.damage.area.hull, { x: 500+ this.x, y: 100+this.y } );
+                //console.log( this.life );
+            
+                this.isAnimate = true;
+            }
+        }
+        /*
+        if ( !this.isAttack ) {
+            if ( this.isAnimate ) {
+                this.isAnimate = false;
+            }
+        }else
+        if ( this.life <=0 && !this.isHurt ) {
+            this.isHurt = true;
+            this.isAttack = false;
+            this.sourceDY = 0;
+            this.lifeBar.x = this.x;
+            this.lifeBar.y = this.y;
+            Body.setPosition( this.body.hull, { x: 500+ this.x, y: 100+this.y } );
+            Body.setPosition( this.damage.area.hull, { x: 500+ this.x, y: 100+this.y } );
+            console.log( this.life );
+        }else{
+            this.isAnimate = true;
+        }
+        /*
+        if ( this.life <= 0 ) {
+            if ( !this.isHurt ) {
+                //console.log( this );
+
+                this.sourceDY = 0;
+                this.isHurt = true;
+                this.lifeBar.x = this.x;
+                this.lifeBar.y = this.y;
+                Body.setPosition( this.body.hull, { x: 500+ this.x, y: 100+this.y } );
+                Body.setPosition( this.damage.area.hull, { x: 500+ this.x, y: 100+this.y } );
+            }
+            this.isAnimate = true;
+        }*/
 
     }
-
 }
 
 class LIFEBAR {
-    x = 0;
-    y = 0;
+    //x = 0;
+    //y = 0;
     #posX = 16;
 
     #max = 100;
     #min = 0;
     #width = 30;
     #height = 5;
-    currentLife = 100;
-
+    //currentLife = 100;
     #colorFull = 'green';
     #colorEmpty = 'red';
 
-    constructor( x, y ) {
+    constructor( x, y, currentLife ) {
         this.x = x;
         this.y = y;
-
+        this.currentLife = currentLife;
         //console.log( this.x, this.y );
     }
 
@@ -860,6 +1007,11 @@ class LIFEBAR {
         }
     }
     render() {
+        /*
+        if ( this.currentLife <=0 ) {
+            console.log( this.currentLife );
+        }
+        */
         this.draw();
     }
 }
@@ -971,6 +1123,40 @@ class COLLISION {
         this.y = y;
         this.width = width;
         this.height = height;
+        this.hull = Bodies.rectangle( this.x, this.y, this.width, this.height, { isStatic: true } );
+        //console.log( this.hull );
+    }
+
+    draw() {
+
+        let vertices = this.hull.vertices;
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+
+        for (var j = 1; j < vertices.length; j += 1) {
+            ctx.lineTo(vertices[j].x, vertices[j].y);
+        }
+
+        ctx.lineTo(vertices[0].x, vertices[0].y);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#ff0000';
+        ctx.stroke();
+    }
+
+    render() {
+        this.draw();
+    }
+}
+
+class DAMAGE_AREA {
+    constructor( x, y, /*radius*/width, height ) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        //this.radius = radius;
+        //this.hull = Bodies.circle( this.x + 32, this.y + 32, this.radius, { isStatic: true } );
         this.hull = Bodies.rectangle( this.x, this.y, this.width, this.height, { isStatic: true } );
         //console.log( this.hull );
     }

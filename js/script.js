@@ -131,6 +131,7 @@ function canvasApp()  {
     }
     //*collidings
     const collidings = {
+        damageArea: [],
         enemys: [],
         tiles: [],
         walls: [],
@@ -740,12 +741,12 @@ function canvasApp()  {
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
-            //enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, true );
+            enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, false );
         }
-
+        //enemys[0] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[0], false, true, false );
         //console.log( enemys );
         //console.log( costumes );
-        console.log( tilesOfCostume );
+        //console.log( tilesOfCostume );
         staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], tilesOfCostume, 'spearman', 250, 100, true );
         //console.log( staticNPC );
         //console.log( tilesBody );
@@ -785,6 +786,7 @@ function canvasApp()  {
 
         //!update
         player.update();
+        updateEnemys();
         //!check
 
         renderPlayScreen();
@@ -875,6 +877,12 @@ function canvasApp()  {
             enemy.render();
         }
     }
+    function updateEnemys() {
+        for (const enemy of enemys ) {
+            enemy.update();
+        }
+    }
+
     function renderStaticNPC() {
         for (const item of staticNPC ) {
             item.render();
@@ -892,14 +900,24 @@ function canvasApp()  {
         //console.log( pressesKeys );
         //let collidings = [];
         //* check collisions
-        if ( pressesKeys.size > 0 && !pressesKeys.has('Space') && !pressesKeys.has('KeyE') ) {
-            let playerBody = player.body.hull;
+        let playerBody = player.body.hull;
+        let playerDamageArea = player.damage.area.hull;
+
+        if ( /*pressesKeys.size > 0 && */!pressesKeys.has('Space') && !pressesKeys.has('KeyE') ) {
+            //let playerBody = player.body.hull;
             //* check collision: player - enemys
             let enemysBodys = [];
             for ( let i = 0; i < enemys.length; i++ ) {
                 enemysBodys[i] = enemys[i].body.hull;
             }
             collidings.enemys = Query.collides( playerBody, enemysBodys );
+            //* check collision of damage area: player - enemys
+            let enemysDamageArea = [];
+            for ( let i = 0; i < enemys.length; i++ ) {
+                enemysDamageArea[i] = enemys[i].damage.area.hull;
+            }
+            collidings.damageArea = Query.collides( playerDamageArea, enemysDamageArea );
+            //console.log( collidings.damageArea );
             //* check collision: player - tiles
             let tiles = [];
             for ( let i = 0; i < coordsTiles.length; i++ ) {
@@ -918,8 +936,8 @@ function canvasApp()  {
             }
             //console.log( putOnObj );
             collidings.staticNPC = Query.collides( playerBody, putOnObj );
-            //console.log( collidings );
-
+           // console.log( collidings );
+            //* check summury collisions
             if ( collidings.summary.length > 0 ) {
                 for ( let i = 0; i < collidings.summary.length; i++ ) {
                     //console.log( collidings.summary[i].penetration.x );
@@ -927,43 +945,88 @@ function canvasApp()  {
                     //console.log( player );
                     player.x = player.x + collidings.summary[i].penetration.x;
                     player.y = player.y + collidings.summary[i].penetration.y;
-                    return;
+                    //return;
                 }
             }
         }
-
+        //*  check staticNPC collisions
         if ( pressesKeys.has('KeyE') ) {
             //console.log( player );
             if ( collidings.staticNPC.length > 0 ) {
-                //let tempId = collidings.staticNPC
                 for ( let i = 0; i < collidings.staticNPC.length; i++ ) {
-                    //console.log( collidings.staticNPC[0].bodyB );
-                    let bodyB = collidings.staticNPC[0].bodyB;
-                    let tempId = bodyB.id;
-                    //console.log(tempId);
-                    let tempObj = {};
-
-                    for ( const item of staticNPC ) {
-                        //console.log(item.body.hull.id);
-                        if (  item.hasOwnProperty( 'body' ) ) {
-                            let itemId = item.body.hull.id;
-                            if ( tempId === itemId ) {
-                                tempObj = item;
-                            }
-                        }
-                    }
-                    if ( tempObj.visible ) {
+                    let tempObj = getCollidingActor( 'staticNPC' );
+                    if ( tempObj.actorB.visible ) {
                         //console.log( tempObj );
                         player.setNewWeapon( tempObj );
                         //*delete put-on object
-                        
                         staticNPC.splice(0);
                         //console.log( staticNPC );
                     }
-                    return;
                 }
             }
         }
+        //* check enemys collisions
+        if ( collidings.damageArea.length > 0 ) {
+            for ( let i = 0; i < collidings.damageArea.length; i++ ) {
+                let tempObj = getCollidingActor( 'damageArea', true );
+                //console.log( collidings.damageArea );
+                //console.log( tempObj.actorA.getAttackedActor );
+                tempObj.actorB.toAttack( tempObj );
+                //console.log( tempObj.actorA );
+                //console.log( tempObj.actorA.getAttackedActor );
+                tempObj.actorA.getAttackedActor( tempObj );
+            }
+        }else{
+            //console.log( collidings.damageArea );
+
+            for ( const enemy of enemys ) {
+                if ( enemy.isAttack ) {
+                    enemy.toNotAttack();
+                }
+            }
+        }
+    }
+    ///*get colliding Actor - Player
+    function getCollidingActor( typeOfActor, isFindDamageArea ) {
+        let items = [];
+        switch ( typeOfActor ) {
+            case 'staticNPC':
+                items = staticNPC;
+                //console.log( items );
+                break;
+            case 'enemys':
+                items = enemys;
+                //console.log( items );
+                break;
+            case 'damageArea':
+                items = enemys;
+                //console.log( items );
+                break;
+            }
+        let bodyB = collidings[typeOfActor][0].bodyB;
+        let tempIdBodyB = bodyB.id;
+        let actorB = {};
+        let normal = collidings[typeOfActor][0].normal;
+        //console.log( normal );
+        //*get actorB
+        for ( const item of items ) {
+            if (  item.hasOwnProperty( 'body' ) ) {
+                let itemId = item.body.hull.id;
+                if ( tempIdBodyB === itemId ) {
+                    actorB = item;
+                }
+            }
+            if ( item.hasOwnProperty( 'damage' ) && isFindDamageArea ) {
+                let itemId = item.damage.area.hull.id;
+                if ( tempIdBodyB === itemId ) {
+                    actorB = item;
+                }
+            }
+        }
+        //*get actorA (player)
+        let actorA = player;
+        //console.log( {actorA: actorA, actorB: actorB, normal: normal} );
+        return {actorA: actorA, actorB: actorB, normal: normal};
     }
 
     function initCanvas() {
@@ -972,7 +1035,7 @@ function canvasApp()  {
     }
 
     function fillBackground() {
-		// draw background and text 
+		// draw background
 		ctx.fillStyle = '#000000';
 		ctx.fillRect( xMin, yMin, xMax, yMax );
 	}
@@ -982,8 +1045,6 @@ function canvasApp()  {
 		ctx.font         = '40px _sans';
 		ctx.textBaseline = 'top';
 	}
-
-
 
     //* counters
     const frameRateCounter = new FrameRateCounter(1000);
