@@ -965,20 +965,30 @@ function canvasApp()  {
                 }
             }
         }
-        //* check enemys collisions
-        if ( collidings.damageArea.length > 0 ) {
-            for ( let i = 0; i < collidings.damageArea.length; i++ ) {
-                let tempObj = getCollidingActor( 'damageArea', true );
-                //console.log( collidings.damageArea );
-                //console.log( tempObj.actorA.getAttackedActor );
-                tempObj.actorB.toAttack( tempObj );
-                //console.log( tempObj.actorA );
-                //console.log( tempObj.actorA.getAttackedActor );
-                tempObj.actorA.getAttackedActor( tempObj );
+        //* check enemys damage collisions
+        if ( collidings.damageArea.length > 0 ) { //так как массив > 0, то не отключается атака если уже он не касается, а касается другой
+            let collidingActors = getCollidingActor( 'damageArea', true );
+            //console.log( collidingActors );
+            for ( const collidingActor of collidingActors ) {
+                collidingActor.actorB.toAttack( collidingActor );
+                collidingActor.actorA.getAttackedActor( collidingActor );
+            }
+            //*get a list of enemies that do not intersect
+            let tempEnemys = enemys.slice();
+            for ( const collidingActor of collidingActors ) {
+                for ( let i = 0; i < tempEnemys.length; i++ ) {
+                    if ( tempEnemys[i] === collidingActor.actorB ) {
+                        tempEnemys.splice( i, 1 );
+                    }
+                }
+            }
+            //console.log( tempEnemys );
+            for ( const enemy of tempEnemys ) {
+                if ( enemy.isAttack ) {
+                    enemy.toNotAttack();
+                }
             }
         }else{
-            //console.log( collidings.damageArea );
-
             for ( const enemy of enemys ) {
                 if ( enemy.isAttack ) {
                     enemy.toNotAttack();
@@ -989,6 +999,7 @@ function canvasApp()  {
     ///*get colliding Actor - Player
     function getCollidingActor( typeOfActor, isFindDamageArea ) {
         let items = [];
+        let result = [];
         switch ( typeOfActor ) {
             case 'staticNPC':
                 items = staticNPC;
@@ -1003,30 +1014,35 @@ function canvasApp()  {
                 //console.log( items );
                 break;
             }
-        let bodyB = collidings[typeOfActor][0].bodyB;
-        let tempIdBodyB = bodyB.id;
-        let actorB = {};
-        let normal = collidings[typeOfActor][0].normal;
-        //console.log( normal );
-        //*get actorB
-        for ( const item of items ) {
-            if (  item.hasOwnProperty( 'body' ) ) {
-                let itemId = item.body.hull.id;
-                if ( tempIdBodyB === itemId ) {
-                    actorB = item;
+        for ( const item of collidings[typeOfActor] ) {
+        
+            let tempResult = {actorA: {}, actorB: {}, normal: {}};
+            let bodyB = item.bodyB; 
+            let tempIdBodyB = bodyB.id;
+            //let actorB = {};
+            tempResult.normal = item.normal;
+            //console.log( normal );
+            //*get actorB
+            for ( const item of items ) {
+                if (  item.hasOwnProperty( 'body' ) ) {
+                    let itemId = item.body.hull.id;
+                    if ( tempIdBodyB === itemId ) {
+                        tempResult.actorB = item;
+                    }
+                }
+                if ( item.hasOwnProperty( 'damage' ) && isFindDamageArea ) {
+                    let itemId = item.damage.area.hull.id;
+                    if ( tempIdBodyB === itemId ) {
+                        tempResult.actorB = item;
+                    }
                 }
             }
-            if ( item.hasOwnProperty( 'damage' ) && isFindDamageArea ) {
-                let itemId = item.damage.area.hull.id;
-                if ( tempIdBodyB === itemId ) {
-                    actorB = item;
-                }
-            }
+            //*get actorA (player)
+            tempResult.actorA = player;
+            result.push( tempResult );
         }
-        //*get actorA (player)
-        let actorA = player;
-        //console.log( {actorA: actorA, actorB: actorB, normal: normal} );
-        return {actorA: actorA, actorB: actorB, normal: normal};
+        //console.log( result );
+        return result;//{actorA: actorA, actorB: actorB, normal: normal};
     }
 
     function initCanvas() {
