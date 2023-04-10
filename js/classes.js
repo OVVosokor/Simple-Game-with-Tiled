@@ -162,6 +162,7 @@ class HUMAN extends HOMO_SAPIENS {
         this.height = 64;
         this.dx = 0;
         this.dy = 0;
+        this.direction = '';
         //*tiles
         this.delay = 100//delay animation;
         this.frameIndex = 0;
@@ -186,17 +187,20 @@ class HUMAN extends HOMO_SAPIENS {
         this.isOnlyBody = isOnlyBody;
         this.isHurt = false;
         //*life
-        this.life = 100;
+        this.life = {
+            curLife: 1000,
+            maxLife: 1000
+        };
         //*damage
         this.damage = {
-            power: 1,
+            power: {},
             width: 60,
             height: 60,
             area: {}
         }
         //*attacked actor
-        this.attacked = {};
-        this.frameIndexCounter = {}// new FrameRateCounter(100);
+        this.attacked = [];
+        this.frameIndexCounter = {};
 
         //*type
         if ( isPlayer && typeOfCostume !== 'hurt' ) {
@@ -219,7 +223,7 @@ class HUMAN extends HOMO_SAPIENS {
         }else{
             //console.log('incorrect var: isPlayer / typeOfCostume');
         }
-    }   
+    } 
 
     createCollisionBody() {
         this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15/*, { isStatic: true }*/ );
@@ -227,7 +231,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
     createLifeBar() {
-        this.lifeBar = new LIFEBAR( this.x , this.y, this.life );
+        this.lifeBar = new LIFEBAR( this.x , this.y, this.life.curLife );
         // console.log( this.lifeBar );
     }
 
@@ -257,6 +261,16 @@ class HUMAN extends HOMO_SAPIENS {
             };
             //*get list of name costumes
             let nameCostume = namesCostumes[ typeOfCostume ];
+            /*
+            //*set damage power
+            switch (typeOfCostume) {
+                case 'swordman':
+                    this.damage.power = 0.1;
+                    break;
+                case 'spearman':
+                    this.damage.power = 0.2;
+                    break;
+            }*/
             //console.log( nameCostume );
             //*get start costume
             let startCostume = [];
@@ -273,13 +287,15 @@ class HUMAN extends HOMO_SAPIENS {
             //console.log(nameWeapons);
             //*get weapon tile
             for ( const weapon of nameWeapons ) {
-                if ( typeof weapon === 'string' ) {
-                    //console.log(weapon);
-                    let tempWeapon = tilesOfCostume[ weapon ];
-                    //console.log( tempWeapon );
-                    //*create current weapon
-                    let currentWeapon = new WEAPON( tempWeapon, weapon, this.x, this.y, true );
-                    this.currentWeapons.push( currentWeapon );
+                //console.log(weapon);
+                let tempWeapon = tilesOfCostume[ weapon ];
+                //console.log( tempWeapon );
+                //*create current weapon
+                let currentWeapon = new WEAPON( tempWeapon, weapon, this.x, this.y, true );
+                this.currentWeapons.push( currentWeapon );
+                //*set damage power
+                if ( currentWeapon.hasOwnProperty( 'power' ) ) {
+                    this.damage.power = currentWeapon.power;
                 }
             }
             //console.log( this.currentWeapons );
@@ -407,17 +423,36 @@ class HUMAN extends HOMO_SAPIENS {
             this.isAttack = true;
             this.isNotAttack = false;
             this.isAnimate = true;
-            //console.log( this );
-            if ( this.attacked.actorB !== undefined && this.attacked.actorB.life > 0 && this.attacked.actorB.life <= 100 ) {
-                //console.log( this.attacked );
-                this.attacked.actorB.life -= this.damage.power;
+
+            for ( let i = 0; i < this.attacked.length; i++ ) {
+                //* get directions of enemys
+                let directionEnemy = '';
+                if ( this.attacked[i].normal.x === 0 && this.attacked[i].normal.y === 1 || this.attacked[i].normal.x === -0 && this.attacked[i].normal.y === 1 ) {
+                    directionEnemy = 'UP';
+                }else
+                    if ( this.attacked[i].normal.x === 1 && this.attacked[i].normal.y === 0 || this.attacked[i].normal.x === 1 && this.attacked[i].normal.y === -0 ) {
+                        directionEnemy = 'LEFT';
+                    }else
+                        if ( this.attacked[i].normal.x === 0 && this.attacked[i].normal.y === -1 || this.attacked[i].normal.x === -0 && this.attacked[i].normal.y === -1 ) {
+                            directionEnemy = 'DOWN';
+                        }else
+                            if ( this.attacked[i].normal.x === -1 && this.attacked[i].normal.y === 0 || this.attacked[i].normal.x === -1 && this.attacked[i].normal.y === -0 ) {
+                                directionEnemy = 'RIGHT';
+                            }
+                //console.log( this.direction, directionEnemy );
+                //*set attack
+                if ( this.direction === directionEnemy && this.attacked[i].actorB !== undefined && this.attacked[i].actorB.life.curLife > 0 
+                    && this.attacked[i].actorB.life.curLife <= this.attacked[i].actorB.life.maxLife ) {
+                    this.attacked[i].actorB.life.curLife -= this.damage.power.max;
+                    console.log( 'set damage HUMAN ', this.damage.power.max );
+                }
             }
         }
     }
 
-    getAttackedActor( obj ) {
-        this.attacked = obj;
-        //console.log( this, this.attacked );
+    getAttackedActor( objects ) {
+        this.attacked = objects;
+        //console.log( this.attacked );
     }
 
     setNewWeapon( obj ) {
@@ -431,7 +466,7 @@ class HUMAN extends HOMO_SAPIENS {
 
     //*check keys
     update() {
-        this.frameIndexCounter.countFrames()
+        this.frameIndexCounter.countFrames();
         if ( this.isPlayer ) {
             
             if ( pressesKeys.size > 0 && this.isPlayer && !this.isHurt ) {
@@ -442,24 +477,28 @@ class HUMAN extends HOMO_SAPIENS {
                             this.sourceDY = 0;
                             this.dx = 0;
                             this.dy = -1;
+                            this.direction = 'UP'
                             this.isAnimate = true;
                             break;
                         case 'ArrowLeft':
                             this.sourceDY = 64;
                             this.dx = -1;
                             this.dy = 0;
+                            this.direction = 'LEFT'
                             this.isAnimate = true;
                             break;
                         case 'ArrowDown':
                             this.sourceDY = 128;
                             this.dx = 0;
                             this.dy = 1;
+                            this.direction = 'DOWN'
                             this.isAnimate = true;
                             break;
                         case 'ArrowRight':
                             this.sourceDY = 192;
                             this.dx = 1;
                             this.dy = 0;
+                            this.direction = 'RIGHT'
                             this.isAnimate = true;
                             break;
                         case 'Space':
@@ -477,6 +516,7 @@ class HUMAN extends HOMO_SAPIENS {
                     }
                 }
                 if ( !pressesKeys.has( 'Space' ) && !pressesKeys.has( 'KeyE' ) ) {
+                    this.isAttack = false;
                     this.x = this.x + this.dx;
                     this.y = this.y + this.dy;
                     this.lifeBar.x = this.x + this.dx;
@@ -484,14 +524,16 @@ class HUMAN extends HOMO_SAPIENS {
                     Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+37 } );
                     Body.setPosition( this.damage.area.hull, { x: this.x+32, y: this.y+32 } );
                 }
+                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                if ( pressesKeys.has( 'Space' ) && pressesKeys.has( 'ArrowLeft' ) ) {
+                    console.log('COMBO');
+                }
             }else{
                 this.isAnimate = false;
                 this.isAttack = false;
                 this.isNotAttack = true;
-
+                /*
                 if ( this.life <= 0 ) {
-                    //console.log('!');
-                    
                     if ( !this.isHurt ) {
                         console.log( this );
                         this.sourceDY = 0;
@@ -502,9 +544,21 @@ class HUMAN extends HOMO_SAPIENS {
                         Body.setPosition( this.damage.area.hull, { x: 100, y: 100 } );
                     }
                     this.isAnimate = true;
-                }
+                }*/
             }
-            this.lifeBar.currentLife = this.life;
+            if ( this.life.curLife <= 0 ) {
+                if ( !this.isHurt ) {
+                    this.sourceDY = 0;
+                    this.isHurt = true;
+                    this.lifeBar.x = this.x;
+                    this.lifeBar.y = this.y;
+                    Body.setPosition( this.body.hull, { x: 100, y: 100 } );
+                    Body.setPosition( this.damage.area.hull, { x: 100, y: 100 } );
+                }
+                this.isAnimate = true;
+            }
+
+            this.lifeBar.currentLife = this.life.curLife;
         }
     }
 }
@@ -655,7 +709,7 @@ class CLOTHES {
 
 class WEAPON {
     constructor( weaponTile, typeOfWeapon, x, y, visible ) {
-        //console.log( weaponTile );
+        console.log( weaponTile );
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
@@ -668,47 +722,27 @@ class WEAPON {
         this.moveMode = 'idle'; //run
         this.isAnimate = false;
         this.visible = visible;
-        //this.indexWeapon = this.getItemOfWeapon( typeOfWeapon );
         //this.tiles = weaponTile;
         this.tile = weaponTile;
-
-       //console.log( this.indexWeapon, this.tiles );
         this.type = typeOfWeapon;
         this.tileObject = {};
         //*load tile
-        //this.tileObject = this.costumes[this.indexClothes];
         this.tilesToRenderWalk = {};
         this.tilesToRenderAttack = {};
         //*life
         this.life = 100;
-        //console.log( this.tilesToRenderWalk );
-        //console.log( this.tilesToRenderAttack );
-        //console.log( this.tiles );
-        //console.log(  this.tiles[1].walk  );
         //*load attack tiles
         this.tilesToRenderWalk = this.tile.walk;
         this.tilesToRenderWalk.visible = this.visible;
         this.tilesToRenderAttack = this.tile.attack;
         this.tilesToRenderAttack.visible = this.visible;
-
+        //*get weapon power
+        if ( this.tile.hasOwnProperty( 'power' ) ) {
+            this.power = this.tile.power;
+            //console.log( this.power );
+        }
         //console.log( this.tileObject );
     }
-    /*
-    //*get index of clothes
-    getItemOfWeapon( type ) {
-        switch ( type ) {
-            case 'dagger':
-                return 1;
-            case 'shield':
-                return 2;
-            case 'quiver':
-                return 3;
-            case 'spear':
-                return 4;
-            case 'bow':
-                return 5;
-        }
-    }*/
     //*draw clothes
     draw() {
         //console.log( this.isAnimate );
@@ -745,17 +779,13 @@ class WEAPON {
     render() {
         if ( this.visible ) {
             if ( !this.isAttack ) {
-                //for ( this.tileObject of this.tilesToRenderWalk ) {
-                    if ( typeof this.tileObject === 'object' ) {
-                        this.draw();
-                    }
-               // }
+                if ( typeof this.tileObject === 'object' ) {
+                    this.draw();
+                }
             }else{
-              // for ( this.tileObject of this.tilesToRenderAttack ) {
-                    if ( typeof this.tileObject === 'object' ) {
-                        this.draw();
-                    }
-               // }
+                if ( typeof this.tileObject === 'object' ) {
+                    this.draw();
+                }
             }
         }
 
@@ -798,10 +828,13 @@ class SKELETON extends HUMAN {
         this.isOnlyBody = isOnlyBody;
         this.isHurt = false;
         //*life
-        this.life = 100;
+        this.life = {
+            curLife: 1000,
+            maxLife: 1000
+        };
         //*damage
         this.damage = {
-            power: 0.1,
+            power: {},
             width: 60,
             height: 60,
             area: {}
@@ -823,6 +856,7 @@ class SKELETON extends HUMAN {
             this.createLifeBar();
             //*create costumes and weapon
             this.getCurrentCostume();
+            //console.log( this.damage.power );
             console.log('set type of body = skeleton');
         }
     }
@@ -837,7 +871,7 @@ class SKELETON extends HUMAN {
     }
 
     createLifeBar() {
-        super.createLifeBar( this.x , this.y, this.life );
+        super.createLifeBar( this.x , this.y, this.life.curLife );
         // console.log( this.lifeBar );
     }
 
@@ -854,18 +888,17 @@ class SKELETON extends HUMAN {
     //*to attack
     toAttack( tempObj ) {
         if ( !this.isOnlyBody ) {
-            console.log('skeleton attack');
+            //console.log('skeleton attack');
             if ( !this.isHurt ) {
                 //console.log( this.frameIndexCounter );
-
-            this.isAttack = true;
-            this.isNotAttack = false;
-            //if ( !this.isHurt ) {
+                this.isAttack = true;
+                this.isNotAttack = false;
                 this.setSourceDY( tempObj.normal );
             }
-            if ( tempObj.actorA.life > 0 && tempObj.actorA.life <= 100 ) {
+            if ( tempObj.actorA.life.curLife > 0 && tempObj.actorA.life.curLife <= tempObj.actorA.life.maxLife ) {
                 //console.log( tempObj );
-                tempObj.actorA.life -= this.damage.power;
+                tempObj.actorA.life.curLife -= this.damage.power.min;
+                console.log( 'set damage SKELETON ', this.damage.power.min );
             }
         }
     }
@@ -910,7 +943,7 @@ class SKELETON extends HUMAN {
                     
                     this.isAnimate = true;
                 }
-            if ( this.life <=0 && !this.isHurt ) {
+            if ( this.life.curLife <=0 && !this.isHurt ) {
                 this.isHurt = true;
                 this.isAttack = false;
                 this.sourceDY = 0;
@@ -919,7 +952,6 @@ class SKELETON extends HUMAN {
                 Body.setPosition( this.body.hull, { x: 500+ this.x, y: 100+this.y } );
                 Body.setPosition( this.damage.area.hull, { x: 500+ this.x, y: 100+this.y } );
                 //console.log( this.life );
-            
                 this.isAnimate = true;
             }
         }
@@ -964,7 +996,7 @@ class LIFEBAR {
     //y = 0;
     #posX = 16;
 
-    #max = 100;
+    #max = 1000;
     #min = 0;
     #width = 30;
     #height = 5;
@@ -994,7 +1026,7 @@ class LIFEBAR {
 
         ctx.beginPath();
             this.setFillStyle( 'red' );
-            ctx.fillRect( this.x + this.#posX + this.#width*this.currentLife/100, this.y, this.#width*( this.#max - this.currentLife )/this.#max, this.#height );
+            ctx.fillRect( this.x + this.#posX + this.#width*this.currentLife/this.#max, this.y, this.#width*( this.#max - this.currentLife )/this.#max, this.#height );
             ctx.closePath();
         ctx.fill();
     }

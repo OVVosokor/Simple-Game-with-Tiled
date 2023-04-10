@@ -216,11 +216,19 @@ function canvasApp()  {
         },
         dagger: {
             walk: {},
-            attack: {}    
+            attack: {},
+            power: {
+                min: 1,
+                max: 5
+            }    
         },
         spear: {
             walk: {},
-            attack: {}    
+            attack: {} ,
+            power: {
+                min: 1,
+                max: 6
+            }   
         },
         shield: {
             walk: {},
@@ -732,7 +740,7 @@ function canvasApp()  {
 
         //*spawns
         //player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); //{swordman: []}
-        player = new HUMAN( tilesOfBody, tilesOfCostume, 'swordman', pointSpawnPlayer, true, true, false ); //{swordman: []}
+        player = new HUMAN( tilesOfBody, tilesOfCostume, 'spearman', pointSpawnPlayer, true, true, false ); //{swordman: []}
 
         //console.log( player );
 
@@ -938,14 +946,17 @@ function canvasApp()  {
             collidings.staticNPC = Query.collides( playerBody, putOnObj );
            // console.log( collidings );
             //* check summury collisions
-            if ( collidings.summary.length > 0 ) {
+            if ( collidings.summary.length > 0 && pressesKeys.size > 0 ) {
                 for ( let i = 0; i < collidings.summary.length; i++ ) {
                     //console.log( collidings.summary[i].penetration.x );
-                    Body.translate( playerBody, {x:collidings.summary[i].penetration.x * -1,y:collidings.summary[i].penetration.y * -1} );  
+                    Body.translate( playerBody, {x:collidings.summary[i].penetration.x * -1,y:collidings.summary[i].penetration.y * -1} ); 
+                    Body.translate( playerDamageArea, {x:collidings.summary[i].penetration.x * -1,y:collidings.summary[i].penetration.y * -1} );  
+
                     //console.log( player );
+                    //console.log( collidings.summary[i].penetration.x );
                     player.x = player.x + collidings.summary[i].penetration.x;
                     player.y = player.y + collidings.summary[i].penetration.y;
-                    //return;
+
                 }
             }
         }
@@ -955,9 +966,9 @@ function canvasApp()  {
             if ( collidings.staticNPC.length > 0 ) {
                 for ( let i = 0; i < collidings.staticNPC.length; i++ ) {
                     let tempObj = getCollidingActor( 'staticNPC' );
-                    if ( tempObj.actorB.visible ) {
+                    if ( tempObj[0].actorB.visible ) { 
                         //console.log( tempObj );
-                        player.setNewWeapon( tempObj );
+                        player.setNewWeapon( tempObj[0] );
                         //*delete put-on object
                         staticNPC.splice(0);
                         //console.log( staticNPC );
@@ -971,7 +982,7 @@ function canvasApp()  {
             //console.log( collidingActors );
             for ( const collidingActor of collidingActors ) {
                 collidingActor.actorB.toAttack( collidingActor );
-                collidingActor.actorA.getAttackedActor( collidingActor );
+                collidingActor.actorA.getAttackedActor( collidingActors );
             }
             //*get a list of enemies that do not intersect
             let tempEnemys = enemys.slice();
