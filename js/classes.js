@@ -468,11 +468,27 @@ class HUMAN extends HOMO_SAPIENS {
 
     setNewWeapon( obj ) {
         //console.log( obj );
-        //console.log( obj.store, obj.type );
+        //console.log( obj.actorB.store, obj.actorB.typeOfStaticNPC );
         this.isOnlyBody = false;
-        this.getCurrentCostume( obj.actorB.store, obj.actorB.type, this.typeOfBody );
-        //console.log( obj.normal );
+        this.getCurrentCostume( obj.actorB.store, obj.actorB.typeOfStaticNPC, this.typeOfBody );
+
         console.log('set new Weapon');
+    }
+
+    getPotion( obj ) {
+        console.log( obj );
+        //console.log( obj.actorB.store.putOn.potions.getLife.givenLife );
+        let addedLife = obj.actorB.store.putOn.potions.getLife.givenLife;
+        this.setNewPotion( addedLife );
+        console.log('get potion');
+    }
+
+    setNewPotion( quantity ) {
+        if ( quantity + this.life.curLife > this.life.maxLife ) {
+            //this.life.curLife = quantity;
+            this.life.curLife = this.life.maxLife;
+        }
+        console.log( this.life );
     }
 
     //*check keys
@@ -1086,7 +1102,7 @@ class STATIC extends NONSTATIC {
 }
 
 class PUT_ON extends STATIC {
-    constructor( costumes, store, typeOfCostume, coordsOfSpawn, visible ) {
+    constructor( tilesOfStaticNPC, store, typeOfStaticNPC, coordsOfSpawn, visible ) {
         super();
         //*coords
         this.x = coordsOfSpawn.x;
@@ -1098,27 +1114,52 @@ class PUT_ON extends STATIC {
         //*tiles
         //this.delay = 100//delay animation;
         this.frameIndex = 0;
-        this.costumes = costumes;
+        this.tilesOfStaticNPC = tilesOfStaticNPC;
         this.tileObject = {};
-        this.isAnimate = false;
+        this.tileObject = tilesOfStaticNPC.idle;
         //*create collision body 
         this.body = new COLLISION( this.x+this.width/2, this.y+this.height/2, this.width, this.height, { isStatic: true } );
        // console.log( this.body );
         //*booles
         this.visible = visible;
-        //*life
-        //this.life = 100;
-        //console.log( costumes );
-        this.tileObject = costumes.idle;
+        this.isAnimate = false;
+
+        //console.log( tilesOfStaticNPC );
         //console.log( this.tileObject );
         //*store
         this.store = store;
         //*type
-        this.type = typeOfCostume;
+        this.typeOfStaticNPC = typeOfStaticNPC;
         //console.log( store );
+        if ( typeOfStaticNPC ) {
+            this.getCurrentTile();
+        }
     }
-    //TODO сделать банки с ХР
-
+    //TODO сделать банки с ХР  --------- переделать tilesOfCostume на tilesOfActors 
+    //*get current tile, type, store
+    getCurrentTile() {
+        let currentTile = {};
+        switch ( this.typeOfStaticNPC ) {
+            case 'spearman':
+                //*get current tile
+                currentTile = this.tilesOfStaticNPC.putOn[ 'spearman' ].idle;
+                //*get store
+                this.store = this.store.nonStatic;
+                //*get type
+                this.type = 'costume';
+                break;
+            case 'getLife':
+                //*get current tile
+                currentTile = this.tilesOfStaticNPC.putOn.potions[ 'getLife' ].idle;
+                //*get store
+                this.store = this.store.static;
+                //*get type
+                this.type = 'potion';
+                break;
+        }
+        this.tileObject = currentTile;
+        //console.log( currentTile );
+    }
     //*render collision body
     renderCollision() {
         this.body.draw();

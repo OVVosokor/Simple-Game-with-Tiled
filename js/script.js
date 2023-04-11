@@ -242,15 +242,22 @@ function canvasApp()  {
             dummy: {}
         }, //[ tilesDummy ],
         putOn: {
-            shieldSpear: {
+            spearman: {
                 idle: {}
             },
-            potionLife: {
-                idle: {},
-                givenLife: 1000
+            potions: {
+                getLife: {
+                    idle: {},
+                    givenLife: 1000
+                }
             }
         } //[ tilesShieldSpear ]
     }
+    const tilesOfActors = {
+        nonStatic: tilesOfCostume,
+        static: tilesOfStaticNPC
+    };
+
 
     function switchGameState( newState ) {
 
@@ -611,17 +618,18 @@ function canvasApp()  {
         //add propeties
         //tilesShieldSpear.idle.tileSheet = tileSheetOfShields_spear;
         //tilesShieldSpear.idle.animFrames = 1;
-        tilesOfStaticNPC.putOn.shieldSpear.idle.tileSheet = tileSheetOfShields_spear;
-        tilesOfStaticNPC.putOn.shieldSpear.idle.animFrames = 1;
-        //*potions
+        tilesOfStaticNPC.putOn.spearman.idle.tileSheet = tileSheetOfShields_spear;
+        tilesOfStaticNPC.putOn.spearman.idle.animFrames = 1;
+        //************************potions
+        //*getLife
         const tileSheetOfPotions = new Image();
         tileSheetOfPotions.addEventListener( 'load', itemLoaded , false );
         tileSheetOfPotions.src = "tiles/potions/pt3.png";
         //add propeties
         //tilesShieldSpear.idle.tileSheet = tileSheetOfPotions;
         //tilesShieldSpear.idle.animFrames = 1;
-        tilesOfStaticNPC.putOn.potionLife.idle.tileSheet = tileSheetOfPotions;
-        tilesOfStaticNPC.putOn.potionLife.idle.animFrames = 1;
+        tilesOfStaticNPC.putOn.potions.getLife.idle.tileSheet = tileSheetOfPotions;
+        tilesOfStaticNPC.putOn.potions.getLife.idle.animFrames = 1;
         //************** LOAD JSON
         //*map
         requestURL_map = 'tiles/tileSheetOfMap.json';
@@ -776,21 +784,21 @@ function canvasApp()  {
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
             enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, false );
         }
-        //enemys[0] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[0], false, true, false );
         //console.log( enemys );
         //console.log( costumes );
         //console.log( tilesOfCostume );
+        console.log( tilesOfActors );
         //staticNPC[0] = new PUT_ON( tilesOfStaticNPC.putOn.shieldSpear, tilesOfCostume, 'spearman', 250, 100, true );
         for ( let i = 0; i < pointsSpawnStaticNPC.length; i++ ) {
             if ( i === 0 ) {
-                staticNPC[i] = new PUT_ON( tilesOfStaticNPC.putOn.shieldSpear, tilesOfStaticNPC, 'spearman', pointsSpawnStaticNPC[i], true );
+                staticNPC[i] = new PUT_ON( tilesOfStaticNPC, tilesOfActors, 'spearman', pointsSpawnStaticNPC[i], true );
             }
             if ( i === 1 ) {
-                staticNPC[i] = new PUT_ON( tilesOfStaticNPC.putOn.potionLife, tilesOfStaticNPC, 'potionLife', pointsSpawnStaticNPC[i], true );
-                console.log( staticNPC[i] );
+                staticNPC[i] = new PUT_ON( tilesOfStaticNPC, tilesOfActors, 'getLife', pointsSpawnStaticNPC[i], true );
+                //console.log( staticNPC[i] );
             }
         }
-            //console.log( staticNPC );
+        console.log( staticNPC );
         //console.log( tilesBody );
         console.log('create play field');
     }
@@ -1000,12 +1008,26 @@ function canvasApp()  {
             if ( collidings.staticNPC.length > 0 ) {
                 for ( let i = 0; i < collidings.staticNPC.length; i++ ) {
                     let tempObj = getCollidingActor( 'staticNPC' );
-                    if ( tempObj[0].actorB.visible ) { 
-                        //console.log( tempObj );
-                        player.setNewWeapon( tempObj[0] );
-                        //*delete put-on object
-                        staticNPC.splice(0);
-                        //console.log( staticNPC );
+                    if ( tempObj[i].actorB.visible ) { 
+                        let index = 0;
+                        switch ( tempObj[i].actorB.type ) {
+                            case 'costume':
+                                //console.log( tempObj );
+                                player.setNewWeapon( tempObj[i] );
+                                //*delete put-on object
+                                index = getIndexOfArray( staticNPC, 'costume' )
+                                staticNPC.splice(index,1);
+                                break;
+                            case 'potion':
+                                //console.log( tempObj );
+                                player.getPotion( tempObj[i] );
+                                //*delete put-on object
+                                index = getIndexOfArray( staticNPC, 'potion' )
+                                staticNPC.splice(index,1);
+                                //staticNPC.splice(i,1);
+                                break;
+                        }
+                        console.log( staticNPC );
                     }
                 }
             }
@@ -1041,7 +1063,20 @@ function canvasApp()  {
             }
         }
     }
-    ///*get colliding Actor - Player
+    //*get index of array by property
+    function getIndexOfArray( array, type ) {
+        //let items = array;
+        let result = undefined;
+        //console.log( array );
+        for ( let i = 0; i < array.length; i++ ) {
+            if ( array[i].type === type ) {
+                console.log( array[i] );
+                result = i;
+            }
+        }
+        return result;
+    }
+    //*get colliding Actor - Player
     function getCollidingActor( typeOfActor, isFindDamageArea ) {
         let items = [];
         let result = [];
@@ -1087,7 +1122,7 @@ function canvasApp()  {
             result.push( tempResult );
         }
         //console.log( result );
-        return result;//{actorA: actorA, actorB: actorB, normal: normal};
+        return result;
     }
 
     function initCanvas() {
