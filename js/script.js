@@ -165,18 +165,18 @@ function canvasApp()  {
         walk: {},
         attack: {}
     };
-    //*
+    /*
     const tilesDummy = {
         titleTiles: 'dummy',
         type: 'interacting',
         idle: {}
     };
-    //*put-on tiles
+    //put-on tiles
     const tilesShieldSpear = {
         titleTiles: 'shield_spear',
         type: 'putOn',
         idle: {}
-    };
+    };*/
     const tilesOfCostume = {
         head: {
             walk: {},
@@ -237,9 +237,19 @@ function canvasApp()  {
     };
     //const costumeInteractingNPC = [ tilesDummy ];
     //const costumesPutOnNPC = [ tilesShieldSpear ];
-    const costumesStaticNPC = {
-        interacting: [ tilesDummy ],
-        putOn: [ tilesShieldSpear ]
+    const tilesOfStaticNPC = {
+        interacting: {
+            dummy: {}
+        }, //[ tilesDummy ],
+        putOn: {
+            shieldSpear: {
+                idle: {}
+            },
+            potionLife: {
+                idle: {},
+                givenLife: 1000
+            }
+        } //[ tilesShieldSpear ]
     }
 
     function switchGameState( newState ) {
@@ -590,16 +600,28 @@ function canvasApp()  {
         tileSheetOfCombatDummy.addEventListener( 'load', itemLoaded , false );
         tileSheetOfCombatDummy.src = "tiles/combat_dummy/BODY_animation.png";
         //add propeties
-        tilesDummy.idle.tileSheet = tileSheetOfCombatDummy;
-        tilesDummy.idle.animFrames = 7;
+        //tilesDummy.idle.tileSheet = tileSheetOfCombatDummy;
+        //tilesDummy.idle.animFrames = 7;
+        tilesOfStaticNPC.interacting.dummy.tileSheet = tileSheetOfCombatDummy;
+        tilesOfStaticNPC.interacting.dummy.animFrames = 7;
         //*shields_spear
         const tileSheetOfShields_spear = new Image();
         tileSheetOfShields_spear.addEventListener( 'load', itemLoaded , false );
         tileSheetOfShields_spear.src = "tiles/objectsOnMap/WEAPON_spear_2.png";
         //add propeties
-        tilesShieldSpear.idle.tileSheet = tileSheetOfShields_spear;
-        tilesShieldSpear.idle.animFrames = 1;
-
+        //tilesShieldSpear.idle.tileSheet = tileSheetOfShields_spear;
+        //tilesShieldSpear.idle.animFrames = 1;
+        tilesOfStaticNPC.putOn.shieldSpear.idle.tileSheet = tileSheetOfShields_spear;
+        tilesOfStaticNPC.putOn.shieldSpear.idle.animFrames = 1;
+        //*potions
+        const tileSheetOfPotions = new Image();
+        tileSheetOfPotions.addEventListener( 'load', itemLoaded , false );
+        tileSheetOfPotions.src = "tiles/potions/pt3.png";
+        //add propeties
+        //tilesShieldSpear.idle.tileSheet = tileSheetOfPotions;
+        //tilesShieldSpear.idle.animFrames = 1;
+        tilesOfStaticNPC.putOn.potionLife.idle.tileSheet = tileSheetOfPotions;
+        tilesOfStaticNPC.putOn.potionLife.idle.animFrames = 1;
         //************** LOAD JSON
         //*map
         requestURL_map = 'tiles/tileSheetOfMap.json';
@@ -742,11 +764,14 @@ function canvasApp()  {
         //player = new HUMAN( tilesBody, costumes, 'swordman', pointSpawnPlayer.x, pointSpawnPlayer.y, true, true ); //{swordman: []}
         player = new HUMAN( tilesOfBody, tilesOfCostume, 'spearman', pointSpawnPlayer, true, true, false ); //{swordman: []}
 
+        //*set name of player
+        player.name = 'Warrior';
         //console.log( player );
 
         const pointsSpawnNPC = getPointsSpawnNPC();
         //console.log(  pointsSpawnNPC);
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
+        const pointsSpawnStaticNPC = pointsSpawnNPC.pointsSpawnStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
             enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, false );
@@ -755,8 +780,17 @@ function canvasApp()  {
         //console.log( enemys );
         //console.log( costumes );
         //console.log( tilesOfCostume );
-        staticNPC[0] = new PUT_ON( costumesStaticNPC.putOn[0], tilesOfCostume, 'spearman', 250, 100, true );
-        //console.log( staticNPC );
+        //staticNPC[0] = new PUT_ON( tilesOfStaticNPC.putOn.shieldSpear, tilesOfCostume, 'spearman', 250, 100, true );
+        for ( let i = 0; i < pointsSpawnStaticNPC.length; i++ ) {
+            if ( i === 0 ) {
+                staticNPC[i] = new PUT_ON( tilesOfStaticNPC.putOn.shieldSpear, tilesOfStaticNPC, 'spearman', pointsSpawnStaticNPC[i], true );
+            }
+            if ( i === 1 ) {
+                staticNPC[i] = new PUT_ON( tilesOfStaticNPC.putOn.potionLife, tilesOfStaticNPC, 'potionLife', pointsSpawnStaticNPC[i], true );
+                console.log( staticNPC[i] );
+            }
+        }
+            //console.log( staticNPC );
         //console.log( tilesBody );
         console.log('create play field');
     }

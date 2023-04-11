@@ -226,7 +226,7 @@ class HUMAN extends HOMO_SAPIENS {
     } 
 
     createCollisionBody() {
-        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15/*, { isStatic: true }*/ );
+        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15 );
         //console.log( this.body );
     }
 
@@ -236,7 +236,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
     createDamageArea() {
-        this.damage.area = new DAMAGE_AREA( this.x+32 , this.y+32, this.damage.width, this.damage.height/*, { isStatic: true }*/ /* this.damage.radius*/ );
+        this.damage.area = new DAMAGE_AREA( this.x+32 , this.y+32, this.damage.width, this.damage.height );
     }
 
     getCurrentCostume( tilesOfCostume, typeOfCostume, typeOfBody ) {
@@ -443,11 +443,22 @@ class HUMAN extends HOMO_SAPIENS {
                 //*set attack
                 if ( this.direction === directionEnemy && this.attacked[i].actorB !== undefined && this.attacked[i].actorB.life.curLife > 0 
                     && this.attacked[i].actorB.life.curLife <= this.attacked[i].actorB.life.maxLife ) {
-                    this.attacked[i].actorB.life.curLife -= this.damage.power.max;
-                    console.log( 'set damage HUMAN ', this.damage.power.max );
+                    //console.log( this.frameIndexCounter.frameCtr );
+                    if ( this.frameIndexCounter.frameCtr === 0 ) {
+                        //* get current damage power
+                        let curDamagePower = this.getDamagePower( this.damage.power.min, this.damage.power.max )
+                        this.attacked[i].actorB.life.curLife -= curDamagePower;
+                        console.log( 'set damage HUMAN - ', this.attacked[i].actorB.typeOfBody , curDamagePower );
+                    }
                 }
             }
         }
+    }
+
+    getDamagePower( min, max ) {
+        min = Math.ceil( min );
+        max = Math.floor( max );
+        return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
     }
 
     getAttackedActor( objects ) {
@@ -897,8 +908,13 @@ class SKELETON extends HUMAN {
             }
             if ( tempObj.actorA.life.curLife > 0 && tempObj.actorA.life.curLife <= tempObj.actorA.life.maxLife ) {
                 //console.log( tempObj );
-                tempObj.actorA.life.curLife -= this.damage.power.min;
-                console.log( 'set damage SKELETON ', this.damage.power.min );
+                //console.log( this.frameIndexCounter.frameCtr );
+                if ( this.frameIndexCounter.frameCtr === 0 ) {
+                    //* get current damage power
+                    let curDamagePower = this.getDamagePower( this.damage.power.min, this.damage.power.max )
+                    tempObj.actorA.life.curLife -= curDamagePower; 
+                    console.log( 'set damage SKELETON - ', tempObj.actorA.name, curDamagePower );
+                }
             }
         }
     }
@@ -1070,39 +1086,29 @@ class STATIC extends NONSTATIC {
 }
 
 class PUT_ON extends STATIC {
-    constructor( costumes, store, typeOfCostume, x, y, visible ) {
+    constructor( costumes, store, typeOfCostume, coordsOfSpawn, visible ) {
         super();
         //*coords
-        this.x = x;
-        this.y = y;
+        this.x = coordsOfSpawn.x;
+        this.y = coordsOfSpawn.y;
         this.width = 64;
         this.height = 64;
-        this.dx = 0;
-        this.dy = 0;
+        //this.dx = 0;
+        //this.dy = 0;
         //*tiles
         //this.delay = 100//delay animation;
         this.frameIndex = 0;
         this.costumes = costumes;
-
-       // console.log( this.costumes );
-
         this.tileObject = {};
-        //this.tilesToRenderWalk = [];
-        //this.tilesToRenderAttack = [];
-        //this.tempCostume = [];
-        //this.currentCostume = [];
-        //this.sourceDY = 128; 
-        //this.moveMode = 'idle';
         this.isAnimate = false;
         //*create collision body 
         this.body = new COLLISION( this.x+this.width/2, this.y+this.height/2, this.width, this.height, { isStatic: true } );
        // console.log( this.body );
         //*booles
         this.visible = visible;
-        //this.isDelete = false;
         //*life
-        this.life = 100;
-
+        //this.life = 100;
+        //console.log( costumes );
         this.tileObject = costumes.idle;
         //console.log( this.tileObject );
         //*store
@@ -1111,15 +1117,7 @@ class PUT_ON extends STATIC {
         this.type = typeOfCostume;
         //console.log( store );
     }
-    /*
-    //*make deleted
-    deleteObj() {
-        if ( this.isDelete ) {
-            this.visible = false;
-            delete this.body;
-            console.log( this.body);
-        }
-    }*/
+    //TODO сделать банки с ХР
 
     //*render collision body
     renderCollision() {
@@ -1136,6 +1134,7 @@ class PUT_ON extends STATIC {
     //*check keys
     update() {
 
+        /*
         if ( pressesKeys.size > 0 ) {
          //console.log( pressesKeys ); 
             for ( const code of pressesKeys.values() ) {
@@ -1145,7 +1144,7 @@ class PUT_ON extends STATIC {
                         break;
                 }
             }
-        }
+        }*/
     }
 }
 
