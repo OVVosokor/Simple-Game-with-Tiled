@@ -35,8 +35,8 @@ class NONSTATIC {
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         this.dx = 0;
         this.dy = 0;
         this.delay = 100;
@@ -116,8 +116,8 @@ class HOMO_SAPIENS extends NONSTATIC {
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         this.dx = 0;
         this.dy = 0;
         this.delay = 100//delay animation;
@@ -158,8 +158,9 @@ class HUMAN extends HOMO_SAPIENS {
         //console.log( tilesOfBody );
         //console.log( typeOfCostume );
         //*coords
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
+        this.delta = 16;
         this.dx = 0;
         this.dy = 0;
         this.direction = '';
@@ -194,8 +195,8 @@ class HUMAN extends HOMO_SAPIENS {
         //*damage
         this.damage = {
             power: {},
-            width: 60,
-            height: 60,
+            width: 30,
+            height: 30,
             area: {}
         }
         //*attacked actor
@@ -226,7 +227,7 @@ class HUMAN extends HOMO_SAPIENS {
     } 
 
     createCollisionBody() {
-        this.body = new COLLISION( this.x+32, this.y+37, this.width-32, this.height-15 );
+        this.body = new COLLISION( this.x+this.delta, this.y+this.delta, this.width-this.delta, this.height-this.delta/2 );
         //console.log( this.body );
     }
 
@@ -236,7 +237,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
     createDamageArea() {
-        this.damage.area = new DAMAGE_AREA( this.x+32 , this.y+32, this.damage.width, this.damage.height );
+        this.damage.area = new DAMAGE_AREA( this.x+this.delta/*32*/ , this.y+this.delta/*32*/, this.damage.width, this.damage.height );
     }
 
     getCurrentCostume( tilesOfCostume, typeOfCostume, typeOfBody ) {
@@ -444,11 +445,16 @@ class HUMAN extends HOMO_SAPIENS {
                 if ( this.direction === directionEnemy && this.attacked[i].actorB !== undefined && this.attacked[i].actorB.life.curLife > 0 
                     && this.attacked[i].actorB.life.curLife <= this.attacked[i].actorB.life.maxLife ) {
                     //console.log( this.frameIndexCounter.frameCtr );
+                    //* get current damage power
                     if ( this.frameIndexCounter.frameCtr === 0 ) {
-                        //* get current damage power
                         let curDamagePower = this.getDamagePower( this.damage.power.min, this.damage.power.max )
                         this.attacked[i].actorB.life.curLife -= curDamagePower;
-                        console.log( 'set damage HUMAN - ', this.attacked[i].actorB.typeOfBody , curDamagePower );
+                        console.log( 'set damage ', this.name, ' - ', this.attacked[i].actorB.typeOfBody , curDamagePower );
+                    }
+                    //*set restored life
+                    if ( this.attacked[i].actorB.life.curLife <= 0 ) {
+                        console.log('restored life');
+                        this.life.curLife = this.life.maxLife;
                     }
                 }
             }
@@ -476,7 +482,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
     getPotion( obj ) {
-        console.log( obj );
+        //console.log( obj );
         //console.log( obj.actorB.store.putOn.potions.getLife.givenLife );
         let addedLife = obj.actorB.store.putOn.potions.getLife.givenLife;
         this.setNewPotion( addedLife );
@@ -488,7 +494,7 @@ class HUMAN extends HOMO_SAPIENS {
             //this.life.curLife = quantity;
             this.life.curLife = this.life.maxLife;
         }
-        console.log( this.life );
+        //console.log( this.life );
     }
 
     //*check keys
@@ -548,8 +554,8 @@ class HUMAN extends HOMO_SAPIENS {
                     this.y = this.y + this.dy;
                     this.lifeBar.x = this.x + this.dx;
                     this.lifeBar.y = this.y + this.dy;
-                    Body.setPosition( this.body.hull, { x: this.x+32, y: this.y+37 } );
-                    Body.setPosition( this.damage.area.hull, { x: this.x+32, y: this.y+32 } );
+                    Body.setPosition( this.body.hull, { x: this.x+this.delta/*16*/, y: this.y+this.delta/*16*/ } );
+                    Body.setPosition( this.damage.area.hull, { x: this.x+this.delta/*16*/, y: this.y+this.delta/*16*/ } );
                 }
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if ( pressesKeys.has( 'Space' ) && pressesKeys.has( 'ArrowLeft' ) ) {
@@ -596,8 +602,8 @@ class CLOTHES {
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         this.dx = 0;
         this.dy = 0;
         this.delay = 100;
@@ -736,12 +742,12 @@ class CLOTHES {
 
 class WEAPON {
     constructor( weaponTile, typeOfWeapon, x, y, visible ) {
-        console.log( weaponTile );
+        //console.log( weaponTile );
         this.frameIndex = 0;
         this.x = x;
         this.y = y;
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         this.dx = 0;
         this.dy = 0;
         this.delay = 100;
@@ -830,8 +836,8 @@ class SKELETON extends HUMAN {
         super();
 
         //*coords
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         this.dx = 0;
         this.dy = 0;
         //*tiles
@@ -862,8 +868,8 @@ class SKELETON extends HUMAN {
         //*damage
         this.damage = {
             power: {},
-            width: 60,
-            height: 60,
+            width: 30,
+            height: 30,
             area: {}
         }
         this.frameIndexCounter = new FrameRateCounter(100);
@@ -1026,7 +1032,7 @@ class SKELETON extends HUMAN {
 class LIFEBAR {
     //x = 0;
     //y = 0;
-    #posX = 16;
+    #posX = 0;
 
     #max = 1000;
     #min = 0;
@@ -1254,3 +1260,103 @@ class DAMAGE_AREA {
         this.draw();
     }
 }
+
+class GRAPH {
+    constructor( coordsObj ) {
+        this.elements = coordsObj;
+        this.nodes = [];
+        console.log( this.elements );
+        this.createGraphNode();
+    }
+
+    createGraphNode() {
+       // if ( this.elements.length > 0 ) {
+
+        //}
+        //x,y
+        let firstVerts = [];
+        let secVerts = [];
+        let thirdVerts = [];
+        let fourVerts = [];
+
+        for ( let i = 0; i < this.elements.length; i++ ) {
+            /*this.nodes[i]*/ firstVerts[i] = new GRAPH_NODE( this.elements[i].x-16, this.elements[i].y-16 );
+        }
+        //x+width
+        for ( let i = 0; i < this.elements.length; i++ ) {
+            /*this.nodes[i]*/ secVerts[i] = new GRAPH_NODE( this.elements[i].x+0 + this.elements[i].width, this.elements[i].y-16 );
+        }
+        //x+width, y+height
+        for ( let i = 0; i < this.elements.length; i++ ) {
+            /*this.nodes[i]*/ thirdVerts[i] = new GRAPH_NODE( this.elements[i].x + this.elements[i].width, this.elements[i].y + this.elements[i].height+0 );
+        }
+        //x, y+height
+        for ( let i = 0; i < this.elements.length; i++ ) {
+            /*this.nodes[i]*/ fourVerts[i] = new GRAPH_NODE( this.elements[i].x-16, this.elements[i].y + this.elements[i].height+0 );
+        }
+        this.nodes = firstVerts.concat( secVerts, thirdVerts, fourVerts );
+
+        console.log( this.nodes );
+    }
+
+    draw() {
+        for ( const node of this.nodes ) {
+            ctx.beginPath();
+            ctx.arc( node.x, node.y, 5, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'blue';
+            ctx.stroke();
+        }
+    }
+
+    render() {
+        this.draw();
+    }
+
+}
+
+class GRAPH_NODE {
+    constructor( x, y, type ) {
+        this.x = x;
+        this.y = y;
+        this.position = {x:x, y:y};
+        this.type = type;
+        this.data = {};
+        //this.hull = Bodies.rectangle( this.x, this.y, this.width, this.height, { isStatic: true } );
+        //console.log( this.hull );
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc( this.x, this.y, 5, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'blue';
+        ctx.stroke();
+        /*
+        let vertices = this.hull.vertices;
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+
+        for (var j = 1; j < vertices.length; j += 1) {
+            ctx.lineTo(vertices[j].x, vertices[j].y);
+        }
+
+        ctx.lineTo(vertices[0].x, vertices[0].y);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#ff0000';
+        ctx.stroke();*/
+    }
+
+    render() {
+        this.draw();
+    }
+}
+
+/*
+    const mapRows = 20;
+    const mapCols = 30;
+    let mapIndex = undefined; 
+    const xMin = 0;
+	const xMax = mapCols * 32;
+	const yMin = 0;
+	const yMax = mapRows * 32;
+*/
