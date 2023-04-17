@@ -1113,8 +1113,8 @@ class PUT_ON extends STATIC {
         //*coords
         this.x = coordsOfSpawn.x;
         this.y = coordsOfSpawn.y;
-        this.width = 64;
-        this.height = 64;
+        this.width = 32;
+        this.height = 32;
         //this.dx = 0;
         //this.dy = 0;
         //*tiles
@@ -1261,50 +1261,149 @@ class DAMAGE_AREA {
     }
 }
 
+if (!Array.prototype.remove) {
+    Array.prototype.remove = function(from, to) {
+        var rest = this.slice((to || from) + 1 || this.length);
+        this.length = from < 0 ? this.length + from : from;
+        return this.push.apply(this, rest);
+    };
+}
+
+
+const astar = {
+    search: function( grid, start, end, diagonal, heuristic ) {
+        console.log( 'search' );
+        heuristic = heuristic || astar.manhattan;
+
+        let openList   = [];
+        openList.push(start);
+        //console.log( openList, heuristic );
+
+        while(openList.length > 0) {
+
+            // Grab the lowest f(x) to process next
+            let lowInd = 0;
+            for( let i = 0; i < openList.length; i++ ) {
+                if( openList[i].f < openList[lowInd].f ) { lowInd = i; }
+            }
+            let currentNode = openList[lowInd];
+            console.log( currentNode );
+            // End case -- result has been found, return the traced path
+            if( currentNode === end ) {
+                let curr = currentNode;
+                let ret = [];
+                while(curr.parent) {
+                    ret.push(curr);
+                    curr = curr.parent;
+                }
+                return ret.reverse();
+            }
+            
+            // Normal case -- move currentNode from open to closed, process each of its neighbors
+            openList.remove(lowInd);
+            currentNode.closed = true;
+            
+            // Find all neighbors for the current node. Optionally find diagonal neighbors as well (false by default).
+            let neighbors = astar.neighbors(grid, currentNode, diagonal);
+
+            for( var i = 0; i < neighbors.length; i++ ) {
+                let neighbor = neighbors[i];
+
+                if( neighbor.closed || neighbor.isWall() ) {
+                    // not a valid node to process, skip to next neighbor
+                    continue;
+                }
+
+                let gScore = currentNode.g + neighbor.cost;
+                let beenVisited = neighbor.visited;
+
+                console.log(  gScore, beenVisited );
+
+                if( !beenVisited || gScore < neighbor.g ) {
+                    //console.log( gScore );
+                    // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
+                    neighbor.visited = true;
+                    neighbor.parent = currentNode;
+                    neighbor.h = neighbor.h || heuristic( neighbor.position, end.position );
+                    neighbor.g = gScore;
+                    neighbor.f = neighbor.g + neighbor.h;
+
+                    if (!beenVisited) {
+                        // Pushing to heap will put it in proper place based on the 'f' value.
+                        openList.push(neighbor);
+                    }
+                    else {
+                        // Already seen the node, but since it has been rescored we need to reorder it in the heap
+                        //openHeap.rescoreElement(neighbor);
+                    }
+                }
+                
+            }
+        }
+        // No result was found - empty array signifies failure to find path.
+        return [];
+
+    },
+    manhattan: function(pos0, pos1) {
+        var d1 = Math.abs (pos1.x - pos0.x);
+        var d2 = Math.abs (pos1.y - pos0.y);
+        return d1 + d2;
+    },
+    neighbors: function( grid, node ) {
+        let ret = [];
+        let x = node.x;
+        let y = node.y;
+        //console.log( grid );
+        tempHull = []
+        for (const node of grid) {
+            tempHull.push( node.hull );
+        }
+
+        const dStart = { x: [ 2, 0, -2, 0 ], y: [ 0, 2, 0, -2 ] };
+        const dEnd = { x: [ 16, 0, -16, 0 ], y: [ 0, 16, 0, -16 ] };
+        
+        let tempHulls = [];
+        for ( let i = 0; i < 4; i++ ) {
+            let collide = Query.ray( tempHull, {x:x + dStart.x[i], y:y + dStart.y[i]}, {x:x + dEnd.x[i], y:y + dEnd.y[i]} );
+            //console.log(collide);
+            tempHulls = tempHulls.concat( collide );
+        }
+        //console.log(tempHulls);
+
+        //*find node by id hull
+        for ( const tempHull of tempHulls ) {
+            for ( const node of grid ) {
+                if ( node.hull.id === tempHull.bodyB.id ) {
+                    ret = ret.concat( node );
+                    //console.log( node);
+                }
+            }
+        }
+
+        console.log( ret );
+        return ret;
+    }
+
+}
+
 class GRAPH {
-    constructor( coordsObj ) {
-        this.elements = coordsObj;
+    constructor( grid ) {
+        this.elements = grid;
         this.nodes = [];
-        console.log( this.elements );
+        //console.log( this.elements );
         this.createGraphNode();
     }
 
     createGraphNode() {
-       // if ( this.elements.length > 0 ) {
-
-        //}
-        //x,y
-        let firstVerts = [];
-        let secVerts = [];
-        let thirdVerts = [];
-        let fourVerts = [];
-
         for ( let i = 0; i < this.elements.length; i++ ) {
-            /*this.nodes[i]*/ firstVerts[i] = new GRAPH_NODE( this.elements[i].x-16, this.elements[i].y-16 );
+            this.nodes[i] = new GRAPH_NODE( this.elements[i] /*.x, this.elements[i].y, this.elements[i].walkable*/ );
         }
-        //x+width
-        for ( let i = 0; i < this.elements.length; i++ ) {
-            /*this.nodes[i]*/ secVerts[i] = new GRAPH_NODE( this.elements[i].x+0 + this.elements[i].width, this.elements[i].y-16 );
-        }
-        //x+width, y+height
-        for ( let i = 0; i < this.elements.length; i++ ) {
-            /*this.nodes[i]*/ thirdVerts[i] = new GRAPH_NODE( this.elements[i].x + this.elements[i].width, this.elements[i].y + this.elements[i].height+0 );
-        }
-        //x, y+height
-        for ( let i = 0; i < this.elements.length; i++ ) {
-            /*this.nodes[i]*/ fourVerts[i] = new GRAPH_NODE( this.elements[i].x-16, this.elements[i].y + this.elements[i].height+0 );
-        }
-        this.nodes = firstVerts.concat( secVerts, thirdVerts, fourVerts );
-
         console.log( this.nodes );
     }
 
     draw() {
         for ( const node of this.nodes ) {
-            ctx.beginPath();
-            ctx.arc( node.x, node.y, 5, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'blue';
-            ctx.stroke();
+            node.render();
         }
     }
 
@@ -1315,22 +1414,44 @@ class GRAPH {
 }
 
 class GRAPH_NODE {
-    constructor( x, y, type ) {
-        this.x = x;
-        this.y = y;
-        this.position = {x:x, y:y};
-        this.type = type;
+    constructor( node /*x, y, type*/ ) {
+        this.x = node.x;
+        this.y = node.y;
+        this.position = {x:node.x, y:node.y};
+        //this.walkable = 
         this.data = {};
-        //this.hull = Bodies.rectangle( this.x, this.y, this.width, this.height, { isStatic: true } );
+        this.cost = node.costType;
+        this.f = 0;
+        this.g = 0;
+        this.h = 0;
+        this.visited = false;
+        this.closed = false;
+       // grid[x][y].debug = "";
+        this.parent = null;
+
+        this.pathPoint = false;
+
+        this.hull = Bodies.circle( this.x, this.y, 1, { isStatic: true } );
         //console.log( this.hull );
     }
 
+    isWall() {
+        let ret = false;
+        switch ( this.cost ) {
+            case Infinity:
+                ret = true;
+                break;
+        }
+        return ret;
+    }
+
     draw() {
-        ctx.beginPath();
-        ctx.arc( this.x, this.y, 5, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'blue';
-        ctx.stroke();
         /*
+        ctx.beginPath();
+        ctx.arc( this.x, this.y, 1, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'blue';
+        ctx.stroke();*/
+        
         let vertices = this.hull.vertices;
         ctx.beginPath();
         ctx.moveTo(vertices[0].x, vertices[0].y);
@@ -1342,8 +1463,23 @@ class GRAPH_NODE {
         ctx.lineTo(vertices[0].x, vertices[0].y);
 
         ctx.lineWidth = 1;
-        ctx.strokeStyle = '#ff0000';
-        ctx.stroke();*/
+
+        if ( this.closed ) {
+            ctx.strokeStyle = 'blue';
+        }else
+            if ( this.cost === 1000 ) {
+            ctx.strokeStyle = 'red';
+        }else/*
+            else*/{
+                ctx.strokeStyle = 'green';
+            }
+        if ( this.pathPoint ) {
+            ctx.strokeStyle = 'black';
+        }
+        if ( this.cost === 2 ) {
+            ctx.strokeStyle = 'black';
+        }
+        ctx.stroke();
     }
 
     render() {
@@ -1351,12 +1487,3 @@ class GRAPH_NODE {
     }
 }
 
-/*
-    const mapRows = 20;
-    const mapCols = 30;
-    let mapIndex = undefined; 
-    const xMin = 0;
-	const xMax = mapCols * 32;
-	const yMin = 0;
-	const yMax = mapRows * 32;
-*/

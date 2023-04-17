@@ -36,19 +36,19 @@ var GraphNodeType = { OPEN: 0, WALL: 1 };
 function Graph(grid) {
     this.elements = grid;
     var nodes = [];
-  //console.log(grid);
+
     var row, rowLength, len = grid.length;
     for (var x = 0; x < len; ++x) {
         row = grid[x];
-        //console.log(row);
+
         rowLength = row.length;
-        //console.log( row, row.length, len );
+
         nodes[x] = new Array(rowLength); // optimum array with size
-        console.log( rowLength );
+
         for (var y = 0; y < rowLength; ++y) {
             nodes[x][y] = new GraphNode(x, y, row[y]);
-            //console.log(y);
-        }
+
+          }
     }
     this.nodes = nodes;
 }

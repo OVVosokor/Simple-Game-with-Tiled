@@ -8463,6 +8463,8 @@ var Vertices = __webpack_require__(3);
             collides = Collision.collides,
             overlaps = Bounds.overlaps;
 
+            //console.log( body, bodies );
+
         for (var i = 0; i < bodiesLength; i++) {
             var bodyA = bodies[i],
                 partsALength = bodyA.parts.length,

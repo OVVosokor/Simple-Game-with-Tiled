@@ -154,14 +154,14 @@
          "objects":[
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":2,
                  "name":"placeSpawnPlayer",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
-                 "x":167.035296665099,
-                 "y":357.164479028603
+                 "width":32,
+                 "x":128.820699619479,
+                 "y":30.7160012869298
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -176,45 +176,45 @@
          "objects":[
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":3,
                  "name":"object",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
+                 "width":32,
                  "x":869.333,
                  "y":420
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":4,
                  "name":"object",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
+                 "width":32,
                  "x":810.667,
                  "y":184
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":5,
                  "name":"object",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
+                 "width":32,
                  "x":645.333,
                  "y":409.333
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":6,
                  "name":"object",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
+                 "width":32,
                  "x":481.333,
                  "y":193.333
                 }],
@@ -231,47 +231,47 @@
          "objects":[
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":7,
                  "name":"Npc",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
-                 "x":209.034569113686,
-                 "y":278.45348470221
+                 "width":32,
+                 "x":319.856,
+                 "y":72.4069
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":8,
                  "name":"Npc",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
-                 "x":305.333,
-                 "y":545.333
+                 "width":32,
+                 "x":255.258,
+                 "y":575.706
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":9,
                  "name":"Npc",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
+                 "width":32,
                  "x":733.333,
                  "y":34.6667
                 }, 
                 {
                  "class":"",
-                 "height":64,
+                 "height":32,
                  "id":10,
                  "name":"Npc",
                  "rotation":0,
                  "visible":true,
-                 "width":64,
-                 "x":257.333,
-                 "y":356
+                 "width":32,
+                 "x":285.244,
+                 "y":320.701
                 }],
          "opacity":1,
          "type":"objectgroup",

@@ -87,6 +87,7 @@ function canvasApp()  {
     let screenStarted = false;
     //* playfield
     let tileMaps = [];
+    let coordsCollisionTiles = [];
     let coordsTiles = [];
     const wallsTileId = [ 0,1,2,8,9,10,16,17,18,19,20,30,31,37,38,39,46,47 ];
     let tileSheetOfMap = '';
@@ -708,14 +709,18 @@ function canvasApp()  {
             }
         }
         //*collision objects
-        console.log( jsonObj_tiles );
+        //console.log( jsonObj_tiles );
         for ( let i = 0; i < jsonObj_tiles.length; i++ ) {
             if ( jsonObj_tiles[i].hasOwnProperty( 'objectgroup' ) ) {
                 const tempId = jsonObj_tiles[i].id;
                 const tempObj = (jsonObj_tiles[i].objectgroup).objects;
+                console.log( tempObj );
                 for ( let j = 0; j < tempObj.length; j++ ) {
-                    tempObj[j].id = tempId;
-                    tiles.push( tempObj[j] );
+                    if ( tempObj[j].hasOwnProperty( 'class' ) && tempObj[j].class === 'COLLISION' ) {
+                        tempObj[j].id = tempId;
+                        tiles.push( tempObj[j] );
+                    }
+                    
                 }
                 //console.log( tempObj );
                 //console.log( tempId );
@@ -765,7 +770,9 @@ function canvasApp()  {
     let box = {}
     let graphNode = {}
     let graph = {}
-    let nodes = []
+    let grid = []
+    let path = []
+
     function createPlayStage() {
 
         const pointSpawnPlayer = {
@@ -805,9 +812,7 @@ function canvasApp()  {
         }
         //console.log( staticNPC );
         //console.log( tilesBody );
-        console.log( collisionsObjects );
-        //let collide = Query.point( [player.body.hull], {x:180, y:370} /*result*/ );
-        //console.log( collide );
+        //console.log( collisionsObjects );
         //TODO 
         /*
         *создаем сетку: каждый тайл делим на 4 квадрата, его вершины - узлы 
@@ -815,44 +820,71 @@ function canvasApp()  {
         * удаляем узлы, если они принадлежат стенам
         * удаляем узлы на краю игрового поля
         */
-        //graphNode = new GRAPH_NODE( 200,200 );
-        setCoordsOfColTiles();
-        //graph = new GRAPH( coordsTiles );
+
+        let coords = getCoordsOfTiles();
+        coordsCollisionTiles = coords.coordCollision;
+        coordsTiles = coords.coord;
+
         //*create graph grid
-        nodes = createGraphGrid()
-        console.log( coordsTiles );
+        grid = createGraphGrid();
+        //*create graph
+        graph = new GRAPH( grid );
+
+        let start = graph.nodes[0];
+        let end = graph.nodes[ 63 ];
+        console.log( 'start: ', start, 'end: ', end);
+
+        path = astar.search( graph.nodes, start, end, false );
+        console.log( path );
+        
+        for (const node of path) {
+            node.pathPoint = true;
+        }
+
+        //astar.neighbors( graph.nodes, start )
+        //console.log( coordsTiles );
         //console.log( collisionsObjects.tiles );
         console.log('create play field');
     }
 
     function createGraphGrid() {
         let result = [];
-        let tempMapCols = mapCols// + mapCols;
-        let tempMapRows = mapRows //+ mapRows;
+        let tempMapCols = mapCols + mapCols;
+        let tempMapRows = mapRows + mapRows;
         let mapIndex = undefined;
 
-        for ( let rowCtr = 0; rowCtr < mapRows; rowCtr++ ) {
-            for ( let colCtr = 0; colCtr < mapCols; colCtr++ ) {
+        for ( let rowCtr = 0; rowCtr < tempMapRows /*mapRows*/; rowCtr++ ) {
+            for ( let colCtr = 0; colCtr < tempMapCols /*mapCols*/; colCtr++ ) {
                 if ( mapIndex === undefined ) {
                     mapIndex = 0;
                 }
                 let tileId = tileMaps[0][ mapIndex ] //+ mapIndexOffset;
                 mapIndex++;
+
                 //console.log( tileId );
                 let tempResult = {};
                 //*set coords
-                tempResult.x = colCtr*32//+16;
-                tempResult.y = rowCtr*32//+16;
+                tempResult.x = colCtr*16//+16;
+                tempResult.y = rowCtr*16//+16;
+
                 tempResult.id = tileId;
-                tempResult.isWalkable = true;
+                //tempResult.walkable = true;
+                tempResult.costType = 1;
                 //*
+                /*
                 for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
                     if ( tileId-1 === collisionsObjects.tiles[i].id ) {
-                        tempResult.id = tileId;
-                        tempResult.isWalkable = false;
+                        //tempResult.id = tileId;
+                        //console.log(tileId);
+                        //tempResult.walkable = false;
+                        //tempResult.costType = 1000;
                     }
-                }
-
+                }*/
+                /*
+                if ( tileId-1 === 14 ) {
+                    tempResult.costType = 2;
+                }*/
+                //*remove border points
                 if ( tempResult.x === xMin || tempResult.y === yMin ) {
                     continue;
                 }
@@ -862,21 +894,28 @@ function canvasApp()  {
                 
                 //*push to result
                 result.push( tempResult );
-                
 
                 if ( mapIndex === tileMaps[0].length ) {
                     mapIndex = undefined;
                 }
             }
         }
+        //*set costType
+        for ( const node of result ) {
+            for ( const coord of coordsTiles ) {
+                if ( coord.id === 15 && coord.x === node.x && coord.y === node.y ) {
+                    node.costType = 1000;
+                }
+            }
+        }
         //*check collide with walls
         let tiles = [];
-        for ( let i = 0; i < coordsTiles.length; i++ ) {
-            tiles[i] = coordsTiles[i].hull;
+        for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
+            tiles[i] = coordsCollisionTiles[i].hull;
         }
         //console.log( tiles );
+        //*removing unwanted points 
         let flag = true;
-
         while ( flag ) {
             let tempFlag = false;
 
@@ -898,7 +937,7 @@ function canvasApp()  {
                 //console.log( flag );
             }
         }
-        //console.log( coordsTiles );
+
         console.log( result );
         return result;
     }
@@ -944,7 +983,10 @@ function canvasApp()  {
 
     }
     //*set coords collision tiles (walls)
-    function setCoordsOfColTiles() {
+    function getCoordsOfTiles() {
+        let retCoordsCollision = [];
+        let retCoords = [];
+        
         for ( let rowCtr = 0; rowCtr < mapRows; rowCtr++ ) {
             for ( let colCtr = 0; colCtr < mapCols; colCtr++ ) {
                 if ( mapIndex === undefined ) {
@@ -955,21 +997,26 @@ function canvasApp()  {
                 mapIndex++;
 
                 //*add coords tiles
-                if ( !isGetCoordsTiles  ) {
+                //if ( !isGetCoordsTiles  ) {
                     for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
                         if ( !isGetCoordsTiles && tileId === collisionsObjects.tiles[i].id ) {
                             let tempObj = new COLLISION( Math.round((colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2), 
                                 Math.round((rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2),
                                 Math.round(collisionsObjects.tiles[i].width), Math.round(collisionsObjects.tiles[i].height) );
 
-                            coordsTiles.push( tempObj );
+                            //coordsTiles.push( tempObj );
+                            retCoordsCollision.push( tempObj );
+
                             //console.log( tileId );
                             //console.log( collisionsObjects.tiles[i].id );
                             //console.log( coordsTiles );
                             console.log('GetCoordsTiles');
                         }
                     }
-                }
+                //}
+                let tempObj =  {x:Math.round((colCtr * 32)), y:Math.round((rowCtr * 32)), id:tileId+1};
+                retCoords.push( tempObj );
+
                 if ( mapIndex === tileMaps[0].length ) {
                     //console.log( mapIndex );
                     mapIndex = undefined;
@@ -977,6 +1024,7 @@ function canvasApp()  {
                 }
             }
         }
+        return { coord: retCoords, coordCollision: retCoordsCollision };
     }
 
     function drawPlayField( idMap ) {
@@ -1049,19 +1097,24 @@ function canvasApp()  {
         //staticNPC[0].update();
         //*
         //graphNode.render()
-        //graph.render()
+        graph.render()
         
-        for (const tile of coordsTiles) {
+        for (const tile of coordsCollisionTiles) {
             tile.render();
         }
-        for ( const node of nodes ) {
+
+        for (const node of path) {
+            node.render();
+        }
+
+        /*
+        for ( const node of grid ) {
             ctx.beginPath();
             ctx.arc( node.x, node.y, 1, 0, 2 * Math.PI);
             ctx.strokeStyle = 'blue';
             ctx.stroke();
         }
-
-        //coordsTiles[117].render();
+        */
 		//!drawPlayer();
         player.render();
 
@@ -1118,8 +1171,8 @@ function canvasApp()  {
             //console.log( collidings.damageArea );
             //* check collision: player - tiles
             let tiles = [];
-            for ( let i = 0; i < coordsTiles.length; i++ ) {
-                tiles[i] = coordsTiles[i].hull;
+            for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
+                tiles[i] = coordsCollisionTiles[i].hull;
             }
             //console.log( tiles );
             collidings.tiles = Query.collides( playerBody, tiles );

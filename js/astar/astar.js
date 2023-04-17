@@ -12,7 +12,6 @@
 
 var astar = {
     init: function(grid) {
-        console.log( grid );
         for(var x = 0; x < grid.length; x++) {
             for(var y = 0; y < grid[x].length; y++) {
                 grid[x][y].f = 0;
@@ -57,6 +56,7 @@ var astar = {
             currentNode.closed = true;
 
             var neighbors = astar.neighbors(grid, currentNode);
+            
             for(var i=0; i<neighbors.length;i++) {
                 var neighbor = neighbors[i];
 
