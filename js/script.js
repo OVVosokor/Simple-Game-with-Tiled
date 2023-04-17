@@ -122,13 +122,14 @@ function canvasApp()  {
     //* walls
     let walls = [];
     //* tiles
-    let tiles = []; //TODO rename?
+    let tilesCollision = []; 
+    let tiles = [];
     //* triggers
     let triggers = [];
     //*collision object
     const collisionsObjects = {
         walls: walls,
-        tiles: tiles,
+        tiles: tilesCollision,
         triggers: triggers
     }
     //*collidings
@@ -671,7 +672,7 @@ function canvasApp()  {
             listOfLayers = getLayerName();
             //console.log( listOfLayers );
             getEntityOfLayers();
-
+            console.log( tiles );
             tileMaps = layers.tileMaps;
             //console.log( tileMaps );
             placesSpawnPlayer = layers.layerPlayer;
@@ -714,19 +715,16 @@ function canvasApp()  {
             if ( jsonObj_tiles[i].hasOwnProperty( 'objectgroup' ) ) {
                 const tempId = jsonObj_tiles[i].id;
                 const tempObj = (jsonObj_tiles[i].objectgroup).objects;
-                console.log( tempObj );
                 for ( let j = 0; j < tempObj.length; j++ ) {
                     if ( tempObj[j].hasOwnProperty( 'class' ) && tempObj[j].class === 'COLLISION' ) {
                         tempObj[j].id = tempId;
+                        tilesCollision.push( tempObj[j] );
+                    }
+                    if ( tempObj[j].hasOwnProperty( 'class' ) && tempObj[j].class === 'ROAD_ITEM' ) {
+                        tempObj[j].id = tempId;
                         tiles.push( tempObj[j] );
                     }
-                    
                 }
-                //console.log( tempObj );
-                //console.log( tempId );
-                //tiles[tempId] = tempObj;
-                //tempObj.id = tempId;
-                //tiles.push( tempObj )
             }
         }
         //console.log( result );
@@ -831,7 +829,7 @@ function canvasApp()  {
         graph = new GRAPH( grid );
 
         let start = graph.nodes[0];
-        let end = graph.nodes[ 63 ];
+        let end = graph.nodes[ 880 ];
         console.log( 'start: ', start, 'end: ', end);
 
         path = astar.search( graph.nodes, start, end, false );
@@ -900,28 +898,64 @@ function canvasApp()  {
                 }
             }
         }
+    
         //*set costType
+        /*
         for ( const node of result ) {
             for ( const coord of coordsTiles ) {
                 if ( coord.id === 15 && coord.x === node.x && coord.y === node.y ) {
                     node.costType = 1000;
                 }
             }
+        }*/
+        let tempTiles = [];
+        for ( let i = 0; i < coordsTiles.length; i++ ) {
+            tempTiles[i] = coordsTiles[i].hull;
         }
+        console.log( tempTiles );
+
         //*check collide with walls
-        let tiles = [];
+        let tempColTiles = [];
         for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
-            tiles[i] = coordsCollisionTiles[i].hull;
+            tempColTiles[i] = coordsCollisionTiles[i].hull;
         }
-        //console.log( tiles );
+        //*removing unwanted points 
+        {
+            //let flag = true;
+            //while ( flag ) {
+                let tempFlag = false;
+                
+                for ( let i = 0; i < result.length; i++ ) {
+                    let collide = Query.point( tempTiles, result[i] );  
+                    
+                    if ( collide.length > 0 ) {
+                        //console.log( collide );
+                        //result.splice(i,1);
+                        result[i].costType = 50;
+                        //console.log( result[i] );
+                    }
+                    /*
+                    if ( collide.length > 1 && !tempFlag ) {
+                        tempFlag = true;
+                    }
+                    if ( tempFlag ) {
+                        flag = true;
+                    }else{
+                        flag = false;
+                    }*/
+                    //console.log( flag );
+                }
+           // }
+        }
+        //console.log( tempColTiles );
         //*removing unwanted points 
         let flag = true;
         while ( flag ) {
             let tempFlag = false;
-
+            
             for ( let i = 0; i < result.length; i++ ) {
-                let collide = Query.point( tiles, result[i] );  
-
+                let collide = Query.point( tempColTiles, result[i] );  
+                
                 if ( collide.length > 0 ) {
                     //console.log( collide );
                     result.splice(i,1);
@@ -983,7 +1017,7 @@ function canvasApp()  {
 
     }
     //*set coords collision tiles (walls)
-    function getCoordsOfTiles() {
+    function getCoordsOfTiles() { //TODO to refactor
         let retCoordsCollision = [];
         let retCoords = [];
         
@@ -995,35 +1029,39 @@ function canvasApp()  {
                 //console.log( 'mapIndex:', mapIndex );
                 let tileId = tileMaps[0][ mapIndex ] + mapIndexOffset;
                 mapIndex++;
+                //*create collision blocks
+                for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
+                    if ( tileId === collisionsObjects.tiles[i].id ) {
+                        let tempObj = new COLLISION( Math.round((colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2), 
+                            Math.round((rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2),
+                            Math.round(collisionsObjects.tiles[i].width), Math.round(collisionsObjects.tiles[i].height) );
+                        //*add coords tiles
+                        retCoordsCollision.push( tempObj );
 
-                //*add coords tiles
-                //if ( !isGetCoordsTiles  ) {
-                    for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
-                        if ( !isGetCoordsTiles && tileId === collisionsObjects.tiles[i].id ) {
-                            let tempObj = new COLLISION( Math.round((colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2), 
-                                Math.round((rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2),
-                                Math.round(collisionsObjects.tiles[i].width), Math.round(collisionsObjects.tiles[i].height) );
-
-                            //coordsTiles.push( tempObj );
-                            retCoordsCollision.push( tempObj );
-
-                            //console.log( tileId );
-                            //console.log( collisionsObjects.tiles[i].id );
-                            //console.log( coordsTiles );
-                            console.log('GetCoordsTiles');
-                        }
+                        //console.log( tileId );
+                        //console.log( collisionsObjects.tiles[i].id );
+                        //console.log( coordsTiles );
+                        console.log('GetCoordsTiles');
                     }
-                //}
-                let tempObj =  {x:Math.round((colCtr * 32)), y:Math.round((rowCtr * 32)), id:tileId+1};
-                retCoords.push( tempObj );
+                }
+                //*create road_item blocks
+                for ( let i = 0; i < tiles.length; i++ ) {
+                    if ( tileId === tiles[i].id ) {
+                        let tempObj = new ROAD_ITEM( Math.round((colCtr * 32) + tiles[i].x + tiles[i].width/2), 
+                            Math.round((rowCtr * 32) + tiles[i].y + tiles[i].height/2),
+                            Math.round(tiles[i].width), Math.round(tiles[i].height) );
+                        //*add coords tiles
+                        retCoords.push( tempObj );
+                    }
+                }
 
                 if ( mapIndex === tileMaps[0].length ) {
                     //console.log( mapIndex );
                     mapIndex = undefined;
-                    isGetCoordsTiles = true;
                 }
             }
         }
+        console.log( retCoords );
         return { coord: retCoords, coordCollision: retCoordsCollision };
     }
 
@@ -1042,39 +1080,7 @@ function canvasApp()  {
                 //console.log( sourceX+1, sourceY+1, 'colCtr:', colCtr, 'rowCtr:', rowCtr );
                 ctx.drawImage( tileSheetOfMap, sourceX + 1, sourceY + 1, 32, 32, colCtr * 32, rowCtr * 32, 32, 32 );
                 mapIndex++;
-                /*
-                //*add coords tiles
-                if ( !isGetCoordsTiles ) {
-                for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
-                    if ( tileId === collisionsObjects.tiles[i].id ) {
-                        let tempObj = new COLLISION( (colCtr * 32) + collisionsObjects.tiles[i].x + collisionsObjects.tiles[i].width/2, 
-                            (rowCtr * 32) + collisionsObjects.tiles[i].y + collisionsObjects.tiles[i].height/2,
-                            collisionsObjects.tiles[i].width, collisionsObjects.tiles[i].height );
 
-                        coordsTiles.push( tempObj );
-                        //console.log( tileId );
-                        //console.log( collisionsObjects.tiles[i].id );
-                        //console.log( coordsTiles );
-                        console.log('GetCoordsTiles');
-                    }
-                }
-            }*/
-                //*test part - start
-                /*
-                if ( isGetCoordsTiles && !flagCoordsTiles ) {
-                    flagCoordsTiles = true;
-                    console.log( coordsTiles );
-                }
-                for ( let i = 0; i < coordsTiles.length; i++) {
-                    ctx.strokeRect( coordsTiles[i].x, coordsTiles[i].y, coordsTiles[i].width, coordsTiles[i].height );
-                }
-                */
-                /*
-                for ( let i = 0; i < coordsTiles.length; i++) {
-                    ctx.strokeRect( colCtr * 32, rowCtr * 32, 32,32 );
-                }*/
-
-                //*test part - end
                 if ( mapIndex === tileMaps[idMap].length ) {
                     //console.log( mapIndex );
                     mapIndex = undefined;
@@ -1106,7 +1112,10 @@ function canvasApp()  {
         for (const node of path) {
             node.render();
         }
-
+        /*
+        for (const item of coordsTiles) {
+            item.render();
+        }*/
         /*
         for ( const node of grid ) {
             ctx.beginPath();
