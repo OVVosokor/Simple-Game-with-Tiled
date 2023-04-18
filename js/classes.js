@@ -209,7 +209,7 @@ class HUMAN extends HOMO_SAPIENS {
 
         //*type
         if ( isPlayer && typeOfCostume !== 'hurt' ) {
-            this.frameIndexCounter = new FrameRateCounter(100);
+            this.frameIndexCounter = new FrameRateCounter(this.delay);
 
             //*set coords
             this.x = coordsOfSpawn.x;
@@ -229,31 +229,12 @@ class HUMAN extends HOMO_SAPIENS {
             //console.log('incorrect var: isPlayer / typeOfCostume');
         }
     } 
-    //*check collide
-    boundingObjectCollide( object1, object2 ) {
-        //console.log( object1, object2 );
-        var left1 = object1.x;
-        var left2 = object2.x;
-        var right1 = object1.x + object1.width;
-        var right2 = object2.x + object2.width;
-        var top1 = object1.y;
-        var top2 = object2.y;
-        var bottom1 = object1.y + object1.height;
-        var bottom2 = object2.y + object2.height;
-        
-        if (bottom1 < top2) return( false );
-        if (top1 > bottom2) return( false );
-        
-        if (right1 < left2) return( false );
-        if (left1 > right2) return( false );
-        
-        return( true );
-    }
     
     modifySpeed() {
         //*
         let tempHull = [];
         let k = 1;
+        let d = 1;
         for (const node of graph.nodes ) {
             if ( node.cost === 50 ) {
                 tempHull.push( node.hull );
@@ -263,9 +244,9 @@ class HUMAN extends HOMO_SAPIENS {
         let collide = Query.collides( this.body.hull, tempHull );
         //console.log( collide );
         if ( collide.length > 0 ) {
-            return k = 5;
+            return {k:k*5, d:d*5} //k = 5; d -delay
         }else{
-            return k; //= 1;
+            return {k:k, d:d} //k; 
         }
     }
 
@@ -591,15 +572,18 @@ class HUMAN extends HOMO_SAPIENS {
                     }
                 }
                 if ( !pressesKeys.has( 'Space' ) && !pressesKeys.has( 'KeyE' ) ) {
-                    //this.getDataTile()
-                    let k = this.modifySpeed();
+                    let modifyObj = this.modifySpeed();
+                    let k = modifyObj.k;
+                    //this.delay = modifyObj.d*this.delay;    
+
+                    //console.log(k,this.delay);
                     this.isAttack = false;
                     this.x = this.x + this.dx/k;
                     this.y = this.y + this.dy/k;
                     this.lifeBar.x = this.x + this.dx/k;
                     this.lifeBar.y = this.y + this.dy/k;
-                    Body.setPosition( this.body.hull, { x: this.x+this.delta/*16*/, y: this.y+this.delta+4/*16*/ } );
-                    Body.setPosition( this.damage.area.hull, { x: this.x+this.delta/*16*/, y: this.y+this.delta/*16*/ } );
+                    Body.setPosition( this.body.hull, { x: this.x+this.delta, y: this.y+this.delta+4 } );
+                    Body.setPosition( this.damage.area.hull, { x: this.x+this.delta, y: this.y+this.delta } );
                 }
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if ( pressesKeys.has( 'Space' ) && pressesKeys.has( 'ArrowLeft' ) ) {
