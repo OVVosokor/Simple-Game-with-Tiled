@@ -87,9 +87,14 @@ function canvasApp()  {
     let screenStarted = false;
     //* playfield
     let tileMaps = [];
-    let coordsCollisionTiles = [];
-    let coordsTiles = [];
-    const wallsTileId = [ 0,1,2,8,9,10,16,17,18,19,20,30,31,37,38,39,46,47 ];
+    //let coordsCollisionTiles = [];
+    //let coordsTiles = [];
+    const coordsTiles = {
+        collision: [],
+        tiles: []
+    };
+    window.coordsTiles = coordsTiles;
+    //const wallsTileId = [ 0,1,2,8,9,10,16,17,18,19,20,30,31,37,38,39,46,47 ];
     let tileSheetOfMap = '';
     const mapIndexOffset = -1;
     const mapRows = 20;
@@ -100,12 +105,12 @@ function canvasApp()  {
 	const yMin = 0;
 	const yMax = mapRows * 32;
     //* booles
-    let isGetCoordsTiles = false;
+    //let isGetCoordsTiles = false;
     //let isRun = false;
     //let isPressKey = false;
     //window.isPressKey = isPressKey;
     //*test booles
-    let flagCoordsTiles = false;
+    //let flagCoordsTiles = false;
     //* key Presses
     const pressesKeys = new Set();
     window.pressesKeys = pressesKeys;
@@ -126,6 +131,9 @@ function canvasApp()  {
     let tiles = [];
     //*grid
     let grid = [];
+    //*graph
+    let graph = {};
+    //window.graph = graph;
     //* triggers
     let triggers = [];
     //*collision object
@@ -769,7 +777,6 @@ function canvasApp()  {
 
     let box = {}
     let graphNode = {}
-    let graph = {}
     let path = []
 
     function createPlayStage() {
@@ -793,20 +800,22 @@ function canvasApp()  {
         const pointsSpawnStaticNPC = pointsSpawnNPC.pointsSpawnStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
         for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
+            //*set position on the nearest node
+            pointsSpawnNonStaticNPC[i].x = Math.round(pointsSpawnNonStaticNPC[i].x/16)*16;
+            pointsSpawnNonStaticNPC[i].y = Math.round(pointsSpawnNonStaticNPC[i].y/16)*16;
+
             enemys[i] = new SKELETON( tilesOfBody, tilesOfCostume, 'swordman', pointsSpawnNonStaticNPC[i], false, true, false );
         }
         //console.log( enemys );
         //console.log( costumes );
         //console.log( tilesOfCostume );
         //console.log( tilesOfActors );
-        //staticNPC[0] = new PUT_ON( tilesOfStaticNPC.putOn.shieldSpear, tilesOfCostume, 'spearman', 250, 100, true );
         for ( let i = 0; i < pointsSpawnStaticNPC.length; i++ ) {
             if ( i === 0 ) {
                 staticNPC[i] = new PUT_ON( tilesOfStaticNPC, tilesOfActors, 'spearman', pointsSpawnStaticNPC[i], true );
             }
             if ( i === 1 ) {
                 staticNPC[i] = new PUT_ON( tilesOfStaticNPC, tilesOfActors, 'getLife', pointsSpawnStaticNPC[i], true );
-                //console.log( staticNPC[i] );
             }
         }
         //console.log( staticNPC );
@@ -819,23 +828,30 @@ function canvasApp()  {
         * удаляем узлы, если они принадлежат стенам
         * удаляем узлы на краю игрового поля
         */
+        /*
+        let coordsAllTiles = getCoordsOfTiles();
+        coordsCollisionTiles = coordsAllTiles.coordCollision;
+        coordsTiles = coordsAllTiles.coord;*/
 
-        let coords = getCoordsOfTiles();
-        coordsCollisionTiles = coords.coordCollision;
-        coordsTiles = coords.coord;
+        let coordsAllTiles = getCoordsOfTiles();
+        coordsTiles.collision = coordsAllTiles.coordCollision;
+        coordsTiles.tiles = coordsAllTiles.coord;
+        console.log( coordsTiles.tiles );
 
         //*create graph grid
         grid = createGraphGrid();
         //*create graph
         graph = new GRAPH( grid );
-
+        window.graph = graph;
+        
+        /*
         let start = graph.nodes[0];
         let end = graph.nodes[ 880 ];
-        console.log( 'start: ', start, 'end: ', end);
+        console.log( 'start: ', start, 'end: ', end );
 
         path = astar.search( graph.nodes, start, end, false );
         console.log( path );
-
+        */
 
         for (const node of path) {
             node.pathPoint = true;
@@ -900,8 +916,8 @@ function canvasApp()  {
         //*set costType
         {
             let tempTiles = [];
-            for ( let i = 0; i < coordsTiles.length; i++ ) {
-                tempTiles[i] = coordsTiles[i].hull;
+            for ( let i = 0; i < coordsTiles.tiles.length; i++ ) { //coordsTiles
+                tempTiles[i] = coordsTiles.tiles[i].hull;
             }
             //console.log( tempTiles );
             //*removing unwanted points 
@@ -918,8 +934,8 @@ function canvasApp()  {
 
         //*check collide with walls
         let tempTiles = [];
-        for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
-            tempTiles[i] = coordsCollisionTiles[i].hull;
+        for ( let i = 0; i < coordsTiles.collision.length; i++ ) { //coordsCollisionTiles
+            tempTiles[i] = coordsTiles.collision[i].hull;
         }
         //console.log( tempColTiles );
         //*removing unwanted points 
@@ -1035,7 +1051,7 @@ function canvasApp()  {
                 }
             }
         }
-        console.log( retCoords );
+        //console.log( retCoords );
         return { coord: retCoords, coordCollision: retCoordsCollision };
     }
 
@@ -1078,7 +1094,7 @@ function canvasApp()  {
         //*
         graph.render();
         
-        for (const tile of coordsCollisionTiles) {
+        for (const tile of coordsTiles.collision) {
             tile.render();
         }
 
@@ -1153,8 +1169,8 @@ function canvasApp()  {
             //console.log( collidings.damageArea );
             //* check collision: player - tiles
             let tiles = [];
-            for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
-                tiles[i] = coordsCollisionTiles[i].hull;
+            for ( let i = 0; i < coordsTiles.collision.length; i++ ) {
+                tiles[i] = coordsTiles.collision[i].hull;
             }
             //console.log( tiles );
             collidings.tiles = Query.collides( playerBody, tiles );
