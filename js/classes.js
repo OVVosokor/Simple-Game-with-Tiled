@@ -1276,9 +1276,6 @@ class DAMAGE_AREA {
     }
 }
 
-
-
-
 if (!Array.prototype.remove) {
     Array.prototype.remove = function(from, to) {
         var rest = this.slice((to || from) + 1 || this.length);
@@ -1290,12 +1287,10 @@ if (!Array.prototype.remove) {
 
 const astar = {
     search: function( grid, start, end, diagonal, heuristic ) {
-        console.log( 'search' );
         heuristic = heuristic || astar.manhattan;
 
         let openList   = [];
         openList.push(start);
-        //console.log( openList, heuristic );
 
         while(openList.length > 0) {
 
@@ -1304,8 +1299,9 @@ const astar = {
             for( let i = 0; i < openList.length; i++ ) {
                 if( openList[i].f < openList[lowInd].f ) { lowInd = i; }
             }
+
             let currentNode = openList[lowInd];
-            console.log( currentNode );
+
             // End case -- result has been found, return the traced path
             if( currentNode === end ) {
                 let curr = currentNode;
@@ -1335,10 +1331,7 @@ const astar = {
                 let gScore = currentNode.g + neighbor.cost;
                 let beenVisited = neighbor.visited;
 
-                console.log(  gScore, beenVisited );
-
                 if( !beenVisited || gScore < neighbor.g ) {
-                    //console.log( gScore );
                     // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
                     neighbor.visited = true;
                     neighbor.parent = currentNode;
@@ -1347,12 +1340,8 @@ const astar = {
                     neighbor.f = neighbor.g + neighbor.h;
 
                     if (!beenVisited) {
-                        // Pushing to heap will put it in proper place based on the 'f' value.
+                        // Pushing 
                         openList.push(neighbor);
-                    }
-                    else {
-                        // Already seen the node, but since it has been rescored we need to reorder it in the heap
-                        //openHeap.rescoreElement(neighbor);
                     }
                 }
                 
@@ -1371,8 +1360,8 @@ const astar = {
         let ret = [];
         let x = node.x;
         let y = node.y;
-        //console.log( grid );
         tempHull = []
+
         for (const node of grid) {
             tempHull.push( node.hull );
         }
@@ -1383,22 +1372,18 @@ const astar = {
         let tempHulls = [];
         for ( let i = 0; i < 4; i++ ) {
             let collide = Query.ray( tempHull, {x:x + dStart.x[i], y:y + dStart.y[i]}, {x:x + dEnd.x[i], y:y + dEnd.y[i]} );
-            //console.log(collide);
             tempHulls = tempHulls.concat( collide );
         }
-        //console.log(tempHulls);
 
         //*find node by id hull
         for ( const tempHull of tempHulls ) {
             for ( const node of grid ) {
                 if ( node.hull.id === tempHull.bodyB.id ) {
                     ret = ret.concat( node );
-                    //console.log( node);
                 }
             }
         }
 
-        console.log( ret );
         return ret;
     }
 
@@ -1408,15 +1393,14 @@ class GRAPH {
     constructor( grid ) {
         this.elements = grid;
         this.nodes = [];
-        //console.log( this.elements );
         this.createGraphNode();
     }
 
     createGraphNode() {
         for ( let i = 0; i < this.elements.length; i++ ) {
-            this.nodes[i] = new GRAPH_NODE( this.elements[i] /*.x, this.elements[i].y, this.elements[i].walkable*/ );
+            this.nodes[i] = new GRAPH_NODE( this.elements[i] );
         }
-        console.log( this.nodes );
+        //console.log( this.nodes );
     }
 
     draw() {
@@ -1432,11 +1416,10 @@ class GRAPH {
 }
 
 class GRAPH_NODE {
-    constructor( node /*x, y, type*/ ) {
+    constructor( node ) {
         this.x = node.x;
         this.y = node.y;
         this.position = {x:node.x, y:node.y};
-        //this.walkable = 
         this.data = {};
         this.cost = node.costType;
         this.f = 0;
@@ -1444,7 +1427,6 @@ class GRAPH_NODE {
         this.h = 0;
         this.visited = false;
         this.closed = false;
-       // grid[x][y].debug = "";
         this.parent = null;
 
         this.pathPoint = false;
@@ -1464,11 +1446,6 @@ class GRAPH_NODE {
     }
 
     draw() {
-        /*
-        ctx.beginPath();
-        ctx.arc( this.x, this.y, 1, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'blue';
-        ctx.stroke();*/
         
         let vertices = this.hull.vertices;
         ctx.beginPath();
@@ -1487,10 +1464,10 @@ class GRAPH_NODE {
         }else
             if ( this.cost === 50 ) {
             ctx.strokeStyle = 'red';
-        }else/*
-            else*/{
+        }else{
                 ctx.strokeStyle = 'green';
             }
+        
         if ( this.pathPoint ) {
             ctx.strokeStyle = 'black';
         }

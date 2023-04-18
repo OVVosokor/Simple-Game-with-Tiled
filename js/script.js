@@ -124,6 +124,8 @@ function canvasApp()  {
     //* tiles
     let tilesCollision = []; 
     let tiles = [];
+    //*grid
+    let grid = [];
     //* triggers
     let triggers = [];
     //*collision object
@@ -672,7 +674,7 @@ function canvasApp()  {
             listOfLayers = getLayerName();
             //console.log( listOfLayers );
             getEntityOfLayers();
-            console.log( tiles );
+            //console.log( tiles );
             tileMaps = layers.tileMaps;
             //console.log( tileMaps );
             placesSpawnPlayer = layers.layerPlayer;
@@ -768,7 +770,6 @@ function canvasApp()  {
     let box = {}
     let graphNode = {}
     let graph = {}
-    let grid = []
     let path = []
 
     function createPlayStage() {
@@ -834,15 +835,25 @@ function canvasApp()  {
 
         path = astar.search( graph.nodes, start, end, false );
         console.log( path );
-        
+
+
         for (const node of path) {
             node.pathPoint = true;
         }
 
+        getNearNode( grid, {x:20,y:16} );
         //astar.neighbors( graph.nodes, start )
         //console.log( coordsTiles );
         //console.log( collisionsObjects.tiles );
         console.log('create play field');
+    }
+
+    function getNearNode( grid, coord ) {
+        //*search for the nearest
+        let x = Math.round(coord.x/16)*16;
+        let y = Math.round(coord.y/16)*16;
+
+        return grid.find( item => item.x === x && item.y === y );
     }
 
     function createGraphGrid() {
@@ -851,37 +862,24 @@ function canvasApp()  {
         let tempMapRows = mapRows + mapRows;
         let mapIndex = undefined;
 
-        for ( let rowCtr = 0; rowCtr < tempMapRows /*mapRows*/; rowCtr++ ) {
-            for ( let colCtr = 0; colCtr < tempMapCols /*mapCols*/; colCtr++ ) {
+        //*create grid
+        for ( let rowCtr = 0; rowCtr < tempMapRows; rowCtr++ ) {
+            for ( let colCtr = 0; colCtr < tempMapCols; colCtr++ ) {
                 if ( mapIndex === undefined ) {
                     mapIndex = 0;
                 }
-                let tileId = tileMaps[0][ mapIndex ] //+ mapIndexOffset;
+                let tileId = tileMaps[0][ mapIndex ];
                 mapIndex++;
 
                 //console.log( tileId );
                 let tempResult = {};
                 //*set coords
-                tempResult.x = colCtr*16//+16;
-                tempResult.y = rowCtr*16//+16;
+                tempResult.x = colCtr*16;
+                tempResult.y = rowCtr*16;
 
                 tempResult.id = tileId;
-                //tempResult.walkable = true;
                 tempResult.costType = 1;
-                //*
-                /*
-                for ( let i = 0; i < collisionsObjects.tiles.length; i++ ) {
-                    if ( tileId-1 === collisionsObjects.tiles[i].id ) {
-                        //tempResult.id = tileId;
-                        //console.log(tileId);
-                        //tempResult.walkable = false;
-                        //tempResult.costType = 1000;
-                    }
-                }*/
-                /*
-                if ( tileId-1 === 14 ) {
-                    tempResult.costType = 2;
-                }*/
+
                 //*remove border points
                 if ( tempResult.x === xMin || tempResult.y === yMin ) {
                     continue;
@@ -900,52 +898,28 @@ function canvasApp()  {
         }
     
         //*set costType
-        /*
-        for ( const node of result ) {
-            for ( const coord of coordsTiles ) {
-                if ( coord.id === 15 && coord.x === node.x && coord.y === node.y ) {
-                    node.costType = 1000;
+        {
+            let tempTiles = [];
+            for ( let i = 0; i < coordsTiles.length; i++ ) {
+                tempTiles[i] = coordsTiles[i].hull;
+            }
+            //console.log( tempTiles );
+            //*removing unwanted points 
+            for ( let i = 0; i < result.length; i++ ) {
+                let collide = Query.point( tempTiles, result[i] );  
+                
+                if ( collide.length > 0 ) {
+                    //console.log( collide );
+                    result[i].costType = 50;
+                    //console.log( result[i] );
                 }
             }
-        }*/
-        let tempTiles = [];
-        for ( let i = 0; i < coordsTiles.length; i++ ) {
-            tempTiles[i] = coordsTiles[i].hull;
         }
-        console.log( tempTiles );
 
         //*check collide with walls
-        let tempColTiles = [];
+        let tempTiles = [];
         for ( let i = 0; i < coordsCollisionTiles.length; i++ ) {
-            tempColTiles[i] = coordsCollisionTiles[i].hull;
-        }
-        //*removing unwanted points 
-        {
-            //let flag = true;
-            //while ( flag ) {
-                let tempFlag = false;
-                
-                for ( let i = 0; i < result.length; i++ ) {
-                    let collide = Query.point( tempTiles, result[i] );  
-                    
-                    if ( collide.length > 0 ) {
-                        //console.log( collide );
-                        //result.splice(i,1);
-                        result[i].costType = 50;
-                        //console.log( result[i] );
-                    }
-                    /*
-                    if ( collide.length > 1 && !tempFlag ) {
-                        tempFlag = true;
-                    }
-                    if ( tempFlag ) {
-                        flag = true;
-                    }else{
-                        flag = false;
-                    }*/
-                    //console.log( flag );
-                }
-           // }
+            tempTiles[i] = coordsCollisionTiles[i].hull;
         }
         //console.log( tempColTiles );
         //*removing unwanted points 
@@ -954,7 +928,7 @@ function canvasApp()  {
             let tempFlag = false;
             
             for ( let i = 0; i < result.length; i++ ) {
-                let collide = Query.point( tempColTiles, result[i] );  
+                let collide = Query.point( tempTiles, result[i] );  
                 
                 if ( collide.length > 0 ) {
                     //console.log( collide );
@@ -972,7 +946,7 @@ function canvasApp()  {
             }
         }
 
-        console.log( result );
+        //console.log( result );
         return result;
     }
 
@@ -1102,8 +1076,7 @@ function canvasApp()  {
         //staticNPC[0].render();
         //staticNPC[0].update();
         //*
-        //graphNode.render()
-        graph.render()
+        graph.render();
         
         for (const tile of coordsCollisionTiles) {
             tile.render();
@@ -1129,7 +1102,7 @@ function canvasApp()  {
 
         //box.render()
         //*Engine.update
-        Engine.update( engine, 1000 / 60 );
+        Engine.update( engine, 1000/60 );
 	}
 
     function renderEnemys() {
