@@ -983,27 +983,28 @@ class SKELETON extends HUMAN {
             }
     }
 
+    getEndOfPath( node ) {
+        console.log( node );
+    }
+
     //*check keys
     update() {
-        super.update()
+        super.update();
         if ( !this.isHurt ) {
             if ( !this.isAttack ) {
-                //if ( this.isAnimate ) {
                     this.isAnimate = false;
-                //}
             }else
                 if ( this.isAttack ) {
-                    
                     this.isAnimate = true;
                 }
-            if ( this.life.curLife <=0 && !this.isHurt ) {
+            if ( this.life.curLife <= 0 && !this.isHurt ) {
                 this.isHurt = true;
                 this.isAttack = false;
                 this.sourceDY = 0;
                 this.lifeBar.x = this.x;
                 this.lifeBar.y = this.y;
-                Body.setPosition( this.body.hull, { x: 500+ this.x, y: 100+this.y } );
-                Body.setPosition( this.damage.area.hull, { x: 500+ this.x, y: 100+this.y } );
+                Body.setPosition( this.body.hull, { x: 500 + this.x, y: 100 + this.y } );
+                Body.setPosition( this.damage.area.hull, { x: 500 + this.x, y: 100 + this.y } );
                 //console.log( this.life );
                 this.isAnimate = true;
             }
@@ -1425,7 +1426,7 @@ class GRAPH_NODE {
         this.hull = Bodies.circle( this.x, this.y, 1, { isStatic: true } );
         //console.log( this.hull );
     }
-
+    //TODO to refactor не используется
     isWall() {
         let ret = false;
         switch ( this.cost ) {

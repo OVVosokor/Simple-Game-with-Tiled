@@ -857,17 +857,17 @@ function canvasApp()  {
             node.pathPoint = true;
         }
 
-        getNearNode( grid, {x:20,y:16} );
+        getNearNode( grid, player );
         //astar.neighbors( graph.nodes, start )
         //console.log( coordsTiles );
         //console.log( collisionsObjects.tiles );
         console.log('create play field');
     }
 
-    function getNearNode( grid, coord ) {
+    function getNearNode( grid, actor ) {
         //*search for the nearest
-        let x = Math.round(coord.x/16)*16;
-        let y = Math.round(coord.y/16)*16;
+        let x = Math.round(actor.x/16)*16;
+        let y = Math.round(actor.y/16)*16;
 
         return grid.find( item => item.x === x && item.y === y );
     }
@@ -1127,8 +1127,10 @@ function canvasApp()  {
         }
     }
     function updateEnemys() {
+        let endNode = getNearNode( grid, player );
         for (const enemy of enemys ) {
             enemy.update();
+            enemy.getEndOfPath( endNode );
         }
     }
 
