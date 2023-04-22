@@ -29,6 +29,26 @@ class FrameRateCounter {
     }
 }
 
+class COUNTER {
+    constructor( step ) {
+        this.counter = 0;
+        let dateTemp = new Date();
+        this.startTime = dateTemp.getTime();
+        this.step = step;
+    }
+
+    countStep() {
+        let dateTemp = new Date();
+        this.counter++;
+
+        if (  dateTemp.getTime() >=  this.startTime + this.step ) {
+            console.log( 'count' );
+            this.startTime = dateTemp.getTime();
+            this.counter = 0;
+        }
+    }
+}
+
 //********* NON STATIC 
 class NONSTATIC {
     constructor( x, y ) {
@@ -214,6 +234,7 @@ class HUMAN extends HOMO_SAPIENS {
             //*set coords
             this.x = coordsOfSpawn.x;
             this.y = coordsOfSpawn.y;
+            this.centre = {x:this.x+this.width/2, y:this.y+this.height/2}
             //*set type of body
             this.typeOfBody = 'human';
             //*create collision body 
@@ -887,6 +908,10 @@ class SKELETON extends HUMAN {
             height: 30,
             area: {}
         }
+        //*path
+        this.path = [];
+        //this.endNode = {};
+        //*counters
         this.frameIndexCounter = new FrameRateCounter(100);
         //console.log( this.frameIndexCounter );
         //*type
@@ -894,6 +919,7 @@ class SKELETON extends HUMAN {
             //*set coords
             this.x = coordsOfSpawn.x;
             this.y = coordsOfSpawn.y;
+            this.centre = {x:this.x+this.width/2, y:this.y+this.height/2}
             //*set type of body
             this.typeOfBody = 'skeleton';
             //*create collision body
@@ -931,6 +957,7 @@ class SKELETON extends HUMAN {
     render() {
         super.render();
         this.createLifeBar();
+        this.drawPath();
     }
 
     //*to attack
@@ -983,8 +1010,28 @@ class SKELETON extends HUMAN {
             }
     }
 
-    getEndOfPath( node ) {
-        console.log( node );
+    getPath( path ) {
+        this.path = path;
+        console.log( path );
+    }
+
+    drawPath() {
+        if ( this.path.length >= 1 ) {
+            for ( const node of this.path ) {
+                let vertices = node.hull.vertices;
+                ctx.beginPath();
+                ctx.moveTo(vertices[0].x, vertices[0].y);
+    
+                for (var j = 1; j < vertices.length; j += 1) {
+                    ctx.lineTo(vertices[j].x, vertices[j].y);
+                }
+    
+                ctx.lineTo(vertices[0].x, vertices[0].y);
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'black';
+                ctx.stroke();
+            }
+        }
     }
 
     //*check keys
@@ -1003,8 +1050,8 @@ class SKELETON extends HUMAN {
                 this.sourceDY = 0;
                 this.lifeBar.x = this.x;
                 this.lifeBar.y = this.y;
-                Body.setPosition( this.body.hull, { x: 500 + this.x, y: 100 + this.y } );
-                Body.setPosition( this.damage.area.hull, { x: 500 + this.x, y: 100 + this.y } );
+                Body.setPosition( this.body.hull, { x:500+this.x, y:100+this.y } );
+                Body.setPosition( this.damage.area.hull, { x:500+this.x, y:100+this.y } );
                 //console.log( this.life );
                 this.isAnimate = true;
             }
@@ -1336,7 +1383,6 @@ const astar = {
                         openList.push(neighbor);
                     }
                 }
-                
             }
         }
         // No result was found - empty array signifies failure to find path.

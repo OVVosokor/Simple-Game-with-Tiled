@@ -836,7 +836,7 @@ function canvasApp()  {
         let coordsAllTiles = getCoordsOfTiles();
         coordsTiles.collision = coordsAllTiles.coordCollision;
         coordsTiles.tiles = coordsAllTiles.coord;
-        console.log( coordsTiles.tiles );
+        //console.log( coordsTiles.tiles );
 
         //*create graph grid
         grid = createGraphGrid();
@@ -851,25 +851,25 @@ function canvasApp()  {
 
         path = astar.search( graph.nodes, start, end, false );
         console.log( path );
-        */
-
+*/
+        /*
         for (const node of path) {
             node.pathPoint = true;
-        }
+        }*/
 
-        getNearNode( grid, player );
+        //getNearNode( grid, player );
         //astar.neighbors( graph.nodes, start )
         //console.log( coordsTiles );
         //console.log( collisionsObjects.tiles );
         console.log('create play field');
     }
 
-    function getNearNode( grid, actor ) {
+    function getNearNode( graph, actor ) {
         //*search for the nearest
-        let x = Math.round(actor.x/16)*16;
-        let y = Math.round(actor.y/16)*16;
+        let x = Math.round(actor.centre.x/16)*16;
+        let y = Math.round(actor.centre.y/16)*16;
 
-        return grid.find( item => item.x === x && item.y === y );
+        return ret = graph.find( item => item.x === x && item.y === y );
     }
 
     function createGraphGrid() {
@@ -966,6 +966,10 @@ function canvasApp()  {
         return result;
     }
 
+    function getPath( nodes, start, end ) {
+        return astar.search( nodes, start, end, false );
+    }
+
     function getPointsSpawnNPC() {
         //console.log( placesSpawnStaticNPC, placesSpawnNonStaticNPC );
         let pointsSpawnStaticNPC = [];
@@ -996,7 +1000,8 @@ function canvasApp()  {
     function gameStateRenderPlayScreen() {
         frameRateCounter.countFrames();
         frameIndexCounter.countFrames();
-
+        counter.countStep();
+        
         //!update
         player.update();
         updateEnemys();
@@ -1101,18 +1106,6 @@ function canvasApp()  {
         for (const node of path) {
             node.render();
         }
-        /*
-        for (const item of coordsTiles) {
-            item.render();
-        }*/
-        /*
-        for ( const node of grid ) {
-            ctx.beginPath();
-            ctx.arc( node.x, node.y, 1, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'blue';
-            ctx.stroke();
-        }
-        */
 		//!drawPlayer();
         player.render();
 
@@ -1127,15 +1120,32 @@ function canvasApp()  {
         }
     }
     function updateEnemys() {
-        let endNode = getNearNode( grid, player );
-        for (const enemy of enemys ) {
+        for ( const enemy of enemys ) {
             enemy.update();
-            enemy.getEndOfPath( endNode );
+            //*find path
+            if ( counter.counter === 0 ) {
+                let startNode = getNearNode( graph.nodes, enemy );
+                //console.log(startNode);
+                let endNode = getNearNode( graph.nodes, player );
+                //console.log(endNode);
+                //console.log( graph.nodes );
+                let path = getPath( graph.nodes, startNode, endNode );
+                //*give enemy
+                enemy.getPath( path );
+                //*reset nodes
+                for (const node of graph.nodes) {
+                    node.closed = false
+                    node.f = 0;
+                    node.g = 0;
+                    node.h = 0;
+                    node.visited = false;
+                }
+            }
         }
     }
 
     function renderStaticNPC() {
-        for (const item of staticNPC ) {
+        for ( const item of staticNPC ) {
             item.render();
         }
     }
@@ -1347,6 +1357,7 @@ function canvasApp()  {
     const frameRateCounter = new FrameRateCounter(1000);
     const frameIndexCounter = new FrameRateCounter(100);
     window.frameIndexCounter = frameIndexCounter;
+    const counter = new COUNTER( 10000 );
     
     //* keys handlers
     function keyDownHandler( e ) {
