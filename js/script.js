@@ -802,7 +802,7 @@ function canvasApp()  {
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
         const pointsSpawnStaticNPC = pointsSpawnNPC.pointsSpawnStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
-        for ( let i = 0; i < 1 /* pointsSpawnNonStaticNPC.length*/; i++ ) {
+        for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
             //*set position on the nearest node
             pointsSpawnNonStaticNPC[i].x = Math.round(pointsSpawnNonStaticNPC[i].x/16)*16;
             pointsSpawnNonStaticNPC[i].y = Math.round(pointsSpawnNonStaticNPC[i].y/16)*16;
@@ -871,7 +871,7 @@ function canvasApp()  {
         //*search for the nearest
         let x = Math.round(actor.centre.x/16)*16;
         let y = Math.round(actor.centre.y/16)*16;
-
+        console.log( x,y );
         return ret = graph.find( item => item.x === x && item.y === y );
     }
 
@@ -1131,8 +1131,9 @@ function canvasApp()  {
                 //console.log(startNode);
                 let endNode = getNearNode( graph.nodes, player );
                 //console.log(endNode);
+                //console.log( enemy.lastNode.player, endNode );
 
-                if ( enemy.lastNode.player.x !== endNode.x && enemy.lastNode.player.y !== endNode.y ) {
+                if ( enemy.lastNode.player.x !== endNode.x || enemy.lastNode.player.y !== endNode.y ) {
                     console.log('find path');
 
                     let path = getPath( graph.nodes, startNode, endNode );
@@ -1141,8 +1142,9 @@ function canvasApp()  {
                     enemy.getPath( path );
                     //*reset nodes
                     graph = new GRAPH( grid );
+                }else{
+                    console.log('no need to find a path'); //TODO иногда не строит новый маршрут
                 }
-                console.log('no need to find a path'); //TODO иногда не строит новый маршрут
             }
         }
     }

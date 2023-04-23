@@ -232,8 +232,8 @@ class HUMAN extends HOMO_SAPIENS {
             this.frameIndexCounter = new FrameRateCounter(this.delay);
 
             //*set coords
-            this.x = coordsOfSpawn.x;
-            this.y = coordsOfSpawn.y;
+            this.x = Math.round(coordsOfSpawn.x);
+            this.y = Math.round(coordsOfSpawn.y);
             this.centre = {x:Math.round(this.x+this.width/2), y:Math.round(this.y+this.height/2)}
             //*set type of body
             this.typeOfBody = 'human';
@@ -925,8 +925,8 @@ class SKELETON extends HUMAN {
         //*type
         if ( !isPlayer ) {
             //*set coords
-            this.x = coordsOfSpawn.x;
-            this.y = coordsOfSpawn.y;
+            this.x = Math.round(coordsOfSpawn.x);
+            this.y = Math.round(coordsOfSpawn.y);
             this.centre = {x:Math.round(this.x+this.width/2), y:Math.round(this.y+this.height/2)}
             //*set type of body
             this.typeOfBody = 'skeleton';
@@ -1021,16 +1021,15 @@ class SKELETON extends HUMAN {
 
     getPath( path ) {
         //path.splice(0,1);
-
         this.path = path;
-        console.log( this, path );
+        //console.log( this, path );
     }
 
     moveToPoint( endPos ) {
         let dX = Math.round(endPos.x - this.centre.x);
         let dY = Math.round(endPos.y - this.centre.y);
 
-        console.log( dX, dY, this.centre.x, this.centre.y, endPos.x, endPos.y );
+        //console.log( dX, dY, this.centre.x, this.centre.y, endPos.x, endPos.y );
         
         //north 
         if ( dX === 0 && dY < 0 ) {
@@ -1039,8 +1038,6 @@ class SKELETON extends HUMAN {
             this.dy = -0.5;
             this.direction = 'UP';
             this.isAnimate = true;
-            //console.log('!');
-
         }else
         //south 
         if ( dX === 0 && dY > 0  ) {
@@ -1049,8 +1046,6 @@ class SKELETON extends HUMAN {
             this.dy = 0.5;
             this.direction = 'DOWN';
             this.isAnimate = true;
-            //console.log('!');
-            
         }else
         //west 
         if ( dX < 0 && dY === 0 ) {
@@ -1059,12 +1054,10 @@ class SKELETON extends HUMAN {
             this.dy = 0;
             this.direction = 'LEFT';
             this.isAnimate = true;
-            //console.log('!');
-
         }else
         //east
         if ( dX > 0 && dY === 0 ) {
-            console.log( dX, dY );
+           // console.log( dX, dY );
             this.sourceDY = 192;
             this.dx = 0.5;
             this.dy = 0;
@@ -1115,24 +1108,11 @@ class SKELETON extends HUMAN {
                 if ( this.isAttack ) {
                     this.isAnimate = true;
                 }
-            if ( this.life.curLife <= 0 && !this.isHurt ) { //TODO при смерти не ложится
-                this.isHurt = true;
-                this.isAttack = false;
-                this.sourceDY = 0;
-                this.lifeBar.x = this.x;
-                this.lifeBar.y = this.y;
-                Body.setPosition( this.body.hull, { x:500+this.x, y:100+this.y } );
-                Body.setPosition( this.damage.area.hull, { x:500+this.x, y:100+this.y } );
-                //console.log( this.life );
-                this.isAnimate = true;
-            }
-        }
-
-        if ( this.path.length > 0 && !this.isAttack ) {
+            if ( this.path.length > 0 && !this.isAttack ) {
 
                 this.moveToPoint( this.path[this.pathCounter] );
 
-                console.log( this.direction );
+                //console.log( this.direction );
 
                 let endPos = {x:this.path[this.pathCounter].x, y:this.path[this.pathCounter].y};
                 let dX = endPos.x - this.centre.x;
@@ -1145,46 +1125,51 @@ class SKELETON extends HUMAN {
                         if ( dY >= 0 ) {
                             this.pathCounter = 0;
                             this.path.splice(this.pathCounter,1);
-                            console.log('!');
                         }
                         break;
                     case 'DOWN':
                         if ( dY <= 0 ) {
                             this.pathCounter = 0;
                             this.path.splice(this.pathCounter,1);
-                            console.log('!');
                         }
                         break;
                     case 'LEFT':
                         if ( dX >= 0 ) {
                             this.path.splice(this.pathCounter,1);
-                            console.log('!');
                             this.pathCounter = 0;
                         }
                         break;
                     case 'RIGHT':
                         if ( dX <= 0 ) {
-                            //console.log( this.centre, endPos );
-                            //console.log(dX, dY);
                             this.pathCounter = 0;
-                            console.log('!');
-                             ////TODO проблема что дирекшен не задается когда центры одинаковые
                             this.path.splice(this.pathCounter,1);
                         }
                         break;
                     case 'NONE':
                         this.pathCounter = 0;
-                        console.log('!#@!');
                         this.path.splice(this.pathCounter,1);
                         break;
                 }
-        }else
-            if ( this.isAttack )  {
+            }else
+                if ( this.isAttack )  {
+                    this.isAnimate = true;
+                    this.path = [];
+                }else{
+                    this.isAnimate = false;
+                }
+    
+            if ( this.life.curLife <= 0 && !this.isHurt ) { 
+                this.isHurt = true;
+                this.isAttack = false;
+                this.sourceDY = 0;
+                this.lifeBar.x = this.x;
+                this.lifeBar.y = this.y;
+                Body.setPosition( this.body.hull, { x:500+this.x, y:100+this.y } );
+                Body.setPosition( this.damage.area.hull, { x:500+this.x, y:100+this.y } );
+                //console.log( this.life );
                 this.isAnimate = true;
-                this.path = [];
-            }else{
-                this.isAnimate = false;
             }
+        }
     }
 }
 
