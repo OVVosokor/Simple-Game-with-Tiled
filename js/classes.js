@@ -272,7 +272,7 @@ class HUMAN extends HOMO_SAPIENS {
     }
 
     createCollisionBody() {
-        this.body = new COLLISION( this.x+this.delta, this.y+this.delta+4, this.width-this.delta, this.height-this.delta/2-4 );
+        this.body = new COLLISION( this.x+this.delta, this.y+this.delta, this.width-5/*-this.delta*/, this.height-5/*-this.delta/2+4*/ );
         //console.log( this.body );
     }
 
@@ -605,13 +605,14 @@ class HUMAN extends HOMO_SAPIENS {
                     this.centre.y = this.y + this.height/2;
                     this.lifeBar.x = this.x + this.dx/k;
                     this.lifeBar.y = this.y + this.dy/k;
-                    Body.setPosition( this.body.hull, { x: this.x+this.delta, y: this.y+this.delta+4 } );
+                    Body.setPosition( this.body.hull, { x: this.x+this.delta, y: this.y+this.delta } );
                     Body.setPosition( this.damage.area.hull, { x: this.x+this.delta, y: this.y+this.delta } );
                 }
+                /*
                 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if ( pressesKeys.has( 'Space' ) && pressesKeys.has( 'ArrowLeft' ) ) {
                     console.log('COMBO');
-                }
+                }*/
             }else{
                 this.isAnimate = false;
                 this.isAttack = false;

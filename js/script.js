@@ -824,17 +824,6 @@ function canvasApp()  {
         //console.log( staticNPC );
         //console.log( tilesBody );
         //console.log( collisionsObjects );
-        //TODO 
-        /*
-        *создаем сетку: каждый тайл делим на 4 квадрата, его вершины - узлы 
-        * удаляем повторяющиеся узлы
-        * удаляем узлы, если они принадлежат стенам
-        * удаляем узлы на краю игрового поля
-        */
-        /*
-        let coordsAllTiles = getCoordsOfTiles();
-        coordsCollisionTiles = coordsAllTiles.coordCollision;
-        coordsTiles = coordsAllTiles.coord;*/
 
         let coordsAllTiles = getCoordsOfTiles();
         coordsTiles.collision = coordsAllTiles.coordCollision;
@@ -847,32 +836,35 @@ function canvasApp()  {
         graph = new GRAPH( grid );
         window.graph = graph;
         
-        /*
-        let start = graph.nodes[0];
-        let end = graph.nodes[ 880 ];
-        console.log( 'start: ', start, 'end: ', end );
-
-        path = astar.search( graph.nodes, start, end, false );
-        console.log( path );
-*/
-        /*
-        for (const node of path) {
-            node.pathPoint = true;
-        }*/
-
-        //getNearNode( grid, player );
-        //astar.neighbors( graph.nodes, start )
-        //console.log( coordsTiles );
-        //console.log( collisionsObjects.tiles );
         console.log('create play field');
     }
+
+    function getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min)) + min; //Maximum not included, minimum included
+    }
+    
 
     function getNearNode( graph, actor ) {
         //*search for the nearest
         let x = Math.round(actor.centre.x/16)*16;
         let y = Math.round(actor.centre.y/16)*16;
-        console.log( x,y );
-        return ret = graph.find( item => item.x === x && item.y === y );
+
+        let ret = graph.find( item => item.x === x && item.y === y );
+        /*
+        if ( ret === undefined ) {
+            x = Math.round(actor.centre.x/48)*48;
+            y = Math.round(actor.centre.y/48)*48;
+            let ret = graph.find( item => item.x === x && item.y === y );
+
+        }
+
+        console.log(x,y);
+        */
+        console.log(ret);
+
+        return ret //ret = graph.find( item => item.x === x && item.y === y );
     }
 
     function createGraphGrid() {
@@ -1127,23 +1119,35 @@ function canvasApp()  {
             enemy.update();
             //*find path
             if ( counter.counter === 0 ) {
-                let startNode = getNearNode( graph.nodes, enemy );
-                //console.log(startNode);
-                let endNode = getNearNode( graph.nodes, player );
-                //console.log(endNode);
-                //console.log( enemy.lastNode.player, endNode );
+                //*get random int
+                let tempRandInt = getRandomInt(0,10);
+                let flag = false;
+                if ( tempRandInt % 2 === 0 ) {
+                    flag = true;
+                }
 
-                if ( enemy.lastNode.player.x !== endNode.x || enemy.lastNode.player.y !== endNode.y ) {
-                    console.log('find path');
+                console.log(tempRandInt, flag);
 
-                    let path = getPath( graph.nodes, startNode, endNode );
-                    enemy.lastNode.player = endNode;
-                    //*give enemy
-                    enemy.getPath( path );
-                    //*reset nodes
-                    graph = new GRAPH( grid );
-                }else{
-                    console.log('no need to find a path'); //TODO иногда не строит новый маршрут
+                if ( flag ) {
+                    let startNode = getNearNode( graph.nodes, enemy );
+                    //console.log(startNode);
+                    let endNode = getNearNode( graph.nodes, player );
+                    //console.log(endNode);
+                    //console.log( enemy.lastNode.player, endNode );
+
+                    if ( enemy.lastNode.player.x !== endNode.x || enemy.lastNode.player.y !== endNode.y ) {
+                        console.log('find path');
+
+                        let path = getPath( graph.nodes, startNode, endNode );
+                        enemy.lastNode.player = endNode;
+                        //*give enemy
+                        enemy.getPath( path );
+                        //*reset nodes
+                        graph = new GRAPH( grid );
+                    }
+                }
+                else{
+                    console.log('no need to find a path'); 
                 }
             }
         }
@@ -1211,7 +1215,7 @@ function canvasApp()  {
                     Body.translate( playerDamageArea, {x:collidings.summary[i].penetration.x * -1,y:collidings.summary[i].penetration.y * -1} );  
 
                     //console.log( player );
-                    //console.log( collidings.summary[i].penetration.x );
+                    //console.log( collidings.summary[i] );
                     player.x = player.x + collidings.summary[i].penetration.x;
                     player.y = player.y + collidings.summary[i].penetration.y;
 
