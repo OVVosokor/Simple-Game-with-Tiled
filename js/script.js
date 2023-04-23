@@ -19,7 +19,7 @@ function canvasApp()  {
     const canvas = document.getElementById('myCanvas');
     const ctx = canvas.getContext('2d');
     window.ctx = ctx;
-    //* Matter module aliases
+    //*Matter module aliases
     let Engine = Matter.Engine,
         Render = Matter.Render,
         Runner = Matter.Runner,
@@ -37,7 +37,7 @@ function canvasApp()  {
     window.Composite = Composite;
     window.Query = Query;
 
-    //* create an engine
+    //*create an engine
     let engine = Engine.create();
     //const canvasUI = document.getElementById('myCanvas_ui');
     //const ctxUI = canvasUI.getContext('2d');
@@ -66,7 +66,7 @@ function canvasApp()  {
 	var currentGameState=0;
 	var currentGameStateFunction=null;
 
-	//* loading
+	//*loading
     let loadCount = 0;
     const itemsToLoad = 41;
     let requestURL_map; 
@@ -83,9 +83,9 @@ function canvasApp()  {
         layerNpc: []
     };
     //window.layers = layers;
-    //* screens
+    //*screens
     let screenStarted = false;
-    //* playfield
+    //*playfield
     let tileMaps = [];
     //let coordsCollisionTiles = [];
     //let coordsTiles = [];
@@ -104,14 +104,14 @@ function canvasApp()  {
 	const xMax = mapCols * 32;
 	const yMin = 0;
 	const yMax = mapRows * 32;
-    //* booles
+    //*booles
     //let isGetCoordsTiles = false;
     //let isRun = false;
     //let isPressKey = false;
     //window.isPressKey = isPressKey;
     //*test booles
     //let flagCoordsTiles = false;
-    //* key Presses
+    //*key Presses
     const pressesKeys = new Set();
     window.pressesKeys = pressesKeys;
     //* objects
@@ -120,21 +120,24 @@ function canvasApp()  {
     //let npc = [];
     //let nonStaticNPC = [ enemys, npc ];
     let staticNPC = [];
-    //* places Spawn
+    //*places Spawn
     let placesSpawnPlayer = [];
     let placesSpawnNonStaticNPC = [];
     let placesSpawnStaticNPC = [];
-    //* walls
+    //*walls
     let walls = [];
-    //* tiles
+    //*tiles
     let tilesCollision = []; 
     let tiles = [];
+    //*******pathfinder
     //*grid
     let grid = [];
     //*graph
     let graph = {};
-    //window.graph = graph;
-    //* triggers
+    /*
+    //lastNode
+    let lastNode = {player: {}};*/
+    //*triggers
     let triggers = [];
     //*collision object
     const collisionsObjects = {
@@ -799,7 +802,7 @@ function canvasApp()  {
         const pointsSpawnNonStaticNPC = pointsSpawnNPC.pointsSpawnNonStaticNPC;
         const pointsSpawnStaticNPC = pointsSpawnNPC.pointsSpawnStaticNPC;
         //console.log(pointsSpawnNonStaticNPC);
-        for ( let i = 0; i < pointsSpawnNonStaticNPC.length; i++ ) {
+        for ( let i = 0; i < 1 /* pointsSpawnNonStaticNPC.length*/; i++ ) {
             //*set position on the nearest node
             pointsSpawnNonStaticNPC[i].x = Math.round(pointsSpawnNonStaticNPC[i].x/16)*16;
             pointsSpawnNonStaticNPC[i].y = Math.round(pointsSpawnNonStaticNPC[i].y/16)*16;
@@ -1102,10 +1105,10 @@ function canvasApp()  {
         for (const tile of coordsTiles.collision) {
             tile.render();
         }
-
+        /*
         for (const node of path) {
             node.render();
-        }
+        }*/
 		//!drawPlayer();
         player.render();
 
@@ -1128,18 +1131,18 @@ function canvasApp()  {
                 //console.log(startNode);
                 let endNode = getNearNode( graph.nodes, player );
                 //console.log(endNode);
-                //console.log( graph.nodes );
-                let path = getPath( graph.nodes, startNode, endNode );
-                //*give enemy
-                enemy.getPath( path );
-                //*reset nodes
-                for (const node of graph.nodes) {
-                    node.closed = false
-                    node.f = 0;
-                    node.g = 0;
-                    node.h = 0;
-                    node.visited = false;
+
+                if ( enemy.lastNode.player.x !== endNode.x && enemy.lastNode.player.y !== endNode.y ) {
+                    console.log('find path');
+
+                    let path = getPath( graph.nodes, startNode, endNode );
+                    enemy.lastNode.player = endNode;
+                    //*give enemy
+                    enemy.getPath( path );
+                    //*reset nodes
+                    graph = new GRAPH( grid );
                 }
+                console.log('no need to find a path'); //TODO иногда не строит новый маршрут
             }
         }
     }
